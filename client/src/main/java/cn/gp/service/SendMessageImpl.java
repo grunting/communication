@@ -27,5 +27,6 @@ public class SendMessageImpl implements SendMessage {
     public void recoveMessage(String sparker, String message) {
         System.out.println();
         System.out.println(sparker + ":" + message);
+        System.out.print("order:");
     }
 }

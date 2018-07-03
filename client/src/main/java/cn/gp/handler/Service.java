@@ -1,19 +1,17 @@
 package cn.gp.handler;
 
-import cn.gp.proto.Order;
+import cn.gp.model.Request;
 import cn.gp.service.FileStreamImpl;
 import cn.gp.service.ReportImpl;
 import cn.gp.service.SendMessageImpl;
 import cn.gp.service.impl.FileStream;
 import cn.gp.service.impl.Report;
 import cn.gp.service.impl.SendMessage;
-import cn.gp.util.ByteAndObject;
 import com.google.protobuf.ByteString;
 import io.netty.channel.Channel;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -46,7 +44,7 @@ public class Service {
     private static Channel channel;
 
     // 自身需要处理的队列,是全局唯一的
-    private static ConcurrentLinkedQueue<Order.Message> sendQueue = new ConcurrentLinkedQueue<Order.Message>();
+    private static ConcurrentLinkedQueue<Request> sendQueue = new ConcurrentLinkedQueue<Request>();
 
     /**
      * 处理远端发来的请求,客户端全局唯一
@@ -64,26 +62,13 @@ public class Service {
                             Thread.sleep(10);
                         }
 
-                        Order.Message message = sendQueue.poll();
+                        Request request = sendQueue.poll();
 
-
-                        // 对调用者的准备,包括服务名、参数类型数组、调用函数、参数数组,调用完成后的返回
-                        String id = message.getRandom();
-
-                        String serviceName = message.getServiceName();
-                        String methodName = message.getMethodName();
-
-                        Map<String,ByteString> map = message.getMapargsMap();
-
-                        Class<?>[] parameterTypes = new Class<?>[map.keySet().size()];
-                        Object[] arguments = new Object[map.keySet().size()];
-                        for(String key : map.keySet()) {
-                            String[] split = key.split("_");
-
-                            parameterTypes[Integer.parseInt(split[0])] = args.get(split[1]);
-
-                            arguments[Integer.parseInt(split[0])] = ByteAndObject.toObject(map.get(key).toByteArray());
-                        }
+                        Integer id = request.getId();
+                        String serviceName = request.getServiceName();
+                        String methodName = request.getMethodName();
+                        Class<?>[] parameterTypes = request.getParameterTypes();
+                        Object[] arguments = request.getArguments();
 
                         Class serviceClass = servers.get(serviceName);
 
@@ -92,11 +77,11 @@ public class Service {
 
                         Object result = method.invoke(cons.newInstance(),arguments);
 
-                        Order.Message.Builder builder = Order.Message.newBuilder();
-                        builder.setRandom(id);
-                        builder.setReturn(ByteString.copyFrom(ByteAndObject.toByArray(result)));
+                        request = new Request();
+                        request.setId(id);
+                        request.setResult(result);
 
-                        ChannelHandler.sendFinal(builder,Service.channel);
+                        ChannelHandler.sendFinal(request,Service.channel);
 
                     }
                 } catch (Exception e) {
@@ -111,7 +96,7 @@ public class Service {
      * 远端发送过来需要自身处理的信息
      * @param message 信息
      */
-    protected static void sendMessage(Order.Message message) {
+    protected static void sendMessage(Request message) {
         try {
             while(!sendQueue.offer(message)) {
                 Thread.sleep(10);

@@ -1,19 +1,16 @@
 package cn.gp.handler;
 
-import cn.gp.proto.Order;
+import cn.gp.model.Request;
 import cn.gp.service.FileStreamServerImpl;
 import cn.gp.service.RegisterServerImpl;
 import cn.gp.service.SendMessageServerImpl;
 import cn.gp.service.impl.FileStreamServer;
 import cn.gp.service.impl.RegisterServer;
 import cn.gp.service.impl.SendMessageServer;
-import cn.gp.util.ByteAndObject;
-import com.google.protobuf.ByteString;
 import io.netty.channel.Channel;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -27,24 +24,21 @@ public class Service {
      */
     private static class Block {
         private Channel channel;
-        private Order.Message message;
+        private Request request;
 
-        public Block(Channel channel,Order.Message message) {
+        public Block(Channel channel,Request request) {
             this.channel = channel;
-            this.message = message;
+            this.request = request;
         }
 
         public Channel getChannel() {
             return channel;
         }
 
-        public Order.Message getMessage() {
-            return message;
+        public Request getRequest() {
+            return request;
         }
     }
-
-    // 远程调用会用到的参数
-    private static ConcurrentHashMap<String,Class> args = new ConcurrentHashMap<String, Class>();
 
     // 远程调用会用到的服务实现
     private static ConcurrentHashMap<String,Class> servers = new ConcurrentHashMap<String, Class>();
@@ -56,11 +50,6 @@ public class Service {
         servers.put(SendMessageServer.class.getName(), SendMessageServerImpl.class);
         servers.put(FileStreamServer.class.getName(), FileStreamServerImpl.class);
 
-        // 实现服务时需要的参数
-        args.put(String.class.getName(), String.class);
-        args.put(ByteString.class.getName(),ByteString.class);
-        args.put(byte.class.getName(),byte.class);
-        args.put(byte[].class.getName(),byte[].class);
     }
 
     private static ConcurrentLinkedQueue<Block> sendQueue = new ConcurrentLinkedQueue<Block>();
@@ -82,32 +71,18 @@ public class Service {
                         Block block = sendQueue.poll();
 
                         Channel channel = block.getChannel();
+                        Request request = block.getRequest();
 
-                        Order.Message message = block.getMessage();
-
-                        String id = message.getRandom();
-
-                        String serviceName = message.getServiceName();
-                        String methodName = message.getMethodName();
-
-                        Map<String,ByteString> map = message.getMapargsMap();
-
-                        Class<?>[] parameterTypes = new Class<?>[map.keySet().size()];
-                        Object[] arguments = new Object[map.keySet().size()];
-                        for(String key : map.keySet()) {
-
-                            String[] split = key.split("_");
-
-                            parameterTypes[Integer.parseInt(split[0])] = args.get(split[1]);
-
-                            arguments[Integer.parseInt(split[0])] = ByteAndObject.toObject(map.get(key).toByteArray());
-                        }
+                        Integer id = request.getId();
+                        String serviceName = request.getServiceName();
+                        String methodName = request.getMethodName();
+                        Class<?>[] parameterTypes = request.getParameterTypes();
+                        Object[] arguments = request.getArguments();
 
                         Class serviceClass = servers.get(serviceName);
 
                         Class<?>[] argsClass = new Class<?>[1];
                         argsClass[0] = Channel.class;
-
                         Object[] args = new Object[1];
                         args[0] = channel;
 
@@ -116,11 +91,11 @@ public class Service {
 
                         Object result = method.invoke(cons.newInstance(args),arguments);
 
-                        Order.Message.Builder builder = Order.Message.newBuilder();
-                        builder.setRandom(id);
-                        builder.setReturn(ByteString.copyFrom(ByteAndObject.toByArray(result)));
+                        request = new Request();
+                        request.setId(id);
+                        request.setResult(result);
 
-                        ChannelHandler.sendFinal(builder,channel);
+                        ChannelHandler.sendFinal(request,channel);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -133,11 +108,11 @@ public class Service {
     /**
      * 自身需要处理的信息
      * @param channel 通道
-     * @param message 发送的信息
+     * @param request 发送的信息
      */
-    protected synchronized static void sendMessage(Channel channel,Order.Message message) {
+    protected synchronized static void sendMessage(Channel channel,Request request) {
         try {
-            Block block = new Block(channel,message);
+            Block block = new Block(channel,request);
 
             while(!sendQueue.offer(block)) {
                 Thread.sleep(10);

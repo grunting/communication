@@ -40,7 +40,7 @@ public class NettyClient {
                         }
                     })
                     .option(ChannelOption.TCP_NODELAY,true);
-            ChannelFuture f = b.connect("176.122.183.248",8088).sync();
+            ChannelFuture f = b.connect("localhost",8088).sync();
 
             Channel channel = f.channel();
 

@@ -1,52 +1,47 @@
 package cn.gp.util;
 
-import java.io.*;
+import cn.gp.model.Request;
+import io.protostuff.LinkedBuffer;
+import io.protostuff.ProtostuffIOUtil;
+import io.protostuff.Schema;
+import io.protostuff.runtime.RuntimeSchema;
 
 /**
  * 工具类
  */
 public class ByteAndObject {
 
+    private static Schema<Request> schema = RuntimeSchema.createFrom(Request.class);
+
     /**
-     * object转换为bytes
-     * @param obj 对象
+     * obj转换为bytes
+     * @param request 对象
      * @return 字节数组
      */
-    public static byte[] toByArray(Object obj) {
+    public static byte[] serialize(Request request) {
 
-        byte[] bytes = null;
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        LinkedBuffer buffer = LinkedBuffer.allocate(LinkedBuffer.DEFAULT_BUFFER_SIZE);
         try {
-            ObjectOutputStream oos = new ObjectOutputStream(bos);
-            oos.writeObject(obj);
-            oos.flush();
-            bytes = bos.toByteArray();
-            oos.close();
-            bos.close();
-        } catch (Exception e){
-            e.printStackTrace();
+            return ProtostuffIOUtil.toByteArray(request,schema,buffer);
+        } catch (Exception e) {
+            throw new IllegalStateException(e.getMessage(), e);
+        } finally {
+            buffer.clear();
         }
-        return bytes;
     }
 
     /**
-     * bytes转为object
-     * @param bytes 字节数组
-     * @return object对象
+     * bytes转为指定对象(暂定只转化一种对象)
+     * @param data 数组
+     * @return Request对象
      */
-    public static Object toObject(byte[] bytes) {
-        Object obj = null;
+    public static Request deserialize(byte[] data) {
         try {
-            ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
-            ObjectInputStream ois = new ObjectInputStream(bis);
-            obj = ois.readObject();
-            ois.close();
-            bis.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+            Request message = schema.newMessage();
+            ProtostuffIOUtil.mergeFrom(data,message,schema);
+            return message;
+        } catch (Exception e) {
+            throw new IllegalStateException(e.getMessage(), e);
         }
-        return obj;
     }
 }

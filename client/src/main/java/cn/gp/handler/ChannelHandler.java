@@ -1,8 +1,8 @@
 package cn.gp.handler;
 
 import cn.gp.model.Basic;
+import cn.gp.model.Request;
 import cn.gp.proto.Data;
-import cn.gp.proto.Order;
 import cn.gp.util.ByteAndObject;
 import com.google.protobuf.ByteString;
 import io.netty.channel.Channel;
@@ -25,27 +25,26 @@ public class ChannelHandler extends SimpleChannelInboundHandler<Data.Message> {
 
         byte[] real = Basic.getAes().decode(msg.getBody().toByteArray());
 
-        Order.Message message = Order.Message.parseFrom(real);
+        Request request = ByteAndObject.deserialize(real);
 
-        byte[] bytes = message.getReturn().toByteArray();
-        if(bytes.length != 0) {
-            Remote.setResult(Integer.parseInt(message.getRandom()),ByteAndObject.toObject(bytes));
+        if(request.getServiceName() == null) {
+            Remote.setResult(request.getId(), request.getResult());
         } else {
-            Service.sendMessage(message);
+            Service.sendMessage(request);
         }
     }
 
     /**
      * 发送消息的最终体
-     * @param order 发送体
+     * @param request 发送体
      * @param channel 通道
      */
-    public static void sendFinal(Order.Message.Builder order,Channel channel) {
+    public static void sendFinal(Request request,Channel channel) {
         double d = Math.random();
-        order.setOrder(ByteString.copyFrom(String.valueOf(d).getBytes()));
+        request.setRandom(d);
 
-        final Data.Message.Builder builder1 = Data.Message.newBuilder();
-        byte[] crypto = Basic.getAes().encode(order.build().toByteArray());
+        Data.Message.Builder builder1 = Data.Message.newBuilder();
+        byte[] crypto = Basic.getAes().encode(ByteAndObject.serialize(request));
         builder1.setBody(ByteString.copyFrom(crypto));
 
         channel.writeAndFlush(builder1.build());

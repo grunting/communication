@@ -46,9 +46,6 @@ public class ReportImpl implements Report {
 
         ByteString byteString = ByteString.copyFrom(cc);
 
-        System.out.println(byteString.getClass());
-        System.out.println(ByteString.class);
-
         RegisterServer registerServer = Remote.getRemoteProxyObj(RegisterServer.class);
         boolean b = registerServer.addClient(Basic.getName(),byteString);
         System.out.println("上报的结果" + b);

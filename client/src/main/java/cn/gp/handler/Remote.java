@@ -1,8 +1,6 @@
 package cn.gp.handler;
 
-import cn.gp.proto.Order;
-import cn.gp.util.ByteAndObject;
-import com.google.protobuf.ByteString;
+import cn.gp.model.Request;
 import io.netty.channel.Channel;
 import io.netty.util.internal.ConcurrentSet;
 
@@ -26,7 +24,7 @@ public class Remote {
     private static Channel channel;
 
     // 发送给远端的队列,是全局唯一的
-    private static ConcurrentLinkedQueue<Order.Message.Builder> sendQueue = new ConcurrentLinkedQueue<Order.Message.Builder>();
+    private static ConcurrentLinkedQueue<Request> sendQueue = new ConcurrentLinkedQueue<Request>();
 
     // 缓存结果的地方,是全局唯一的
     private static ConcurrentMap<Integer,Object> result = new ConcurrentHashMap<Integer, Object>();
@@ -49,9 +47,9 @@ public class Remote {
                             Thread.sleep(10);
                         }
 
-                        Order.Message.Builder message = sendQueue.poll();
+                        Request request = sendQueue.poll();
 
-                        ChannelHandler.sendFinal(message,Remote.channel);
+                        ChannelHandler.sendFinal(request,Remote.channel);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -63,11 +61,11 @@ public class Remote {
 
     /**
      * 将需要发送的消息交给队列
-     * @param message 消息
+     * @param request 消息
      */
-    public static void sendMessage(Order.Message.Builder message) {
+    public static void sendMessage(Request request) {
         try {
-            while(!sendQueue.offer(message)) {
+            while(!sendQueue.offer(request)) {
                 Thread.sleep(10);
             }
         } catch (Exception e) {
@@ -101,20 +99,17 @@ public class Remote {
                 String serviceName = serviceInterface.getName();
                 String methodName = method.getName();
                 Class<?>[] parameterTypes = method.getParameterTypes();
-                Object[] arguments = args;
 
-                Order.Message.Builder builder = Order.Message.newBuilder();
-                builder.setServiceName(serviceName);
-                builder.setMethodName(methodName);
-                for(int i = 0;i < arguments.length;i ++) {
-                    builder.putMapargs(i + "_" + parameterTypes[i].getName(), ByteString.copyFrom(ByteAndObject.toByArray(arguments[i])));
-                }
+                Request request = new Request();
+                request.setServiceName(serviceName);
+                request.setMethodName(methodName);
+                request.setParameterTypes(parameterTypes);
+                request.setArguments(args);
 
                 Integer id = atomicInteger.getAndAdd(1);
-                builder.setRandom(id + "");
+                request.setId(id);
 
-
-                sendMessage(builder);
+                sendMessage(request);
 
                 Object o;
                 while(true) {

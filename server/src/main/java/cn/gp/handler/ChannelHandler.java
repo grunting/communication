@@ -1,8 +1,8 @@
 package cn.gp.handler;
 
 import cn.gp.model.Basic;
+import cn.gp.model.Request;
 import cn.gp.proto.Data;
-import cn.gp.proto.Order;
 import cn.gp.service.RegisterServerImpl;
 import cn.gp.util.ByteAndObject;
 import com.google.protobuf.ByteString;
@@ -26,23 +26,30 @@ public class ChannelHandler extends SimpleChannelInboundHandler<Data.Message> {
 
         byte[] real = Basic.getAes().decode(msg.getBody().toByteArray());
 
-        Order.Message message = Order.Message.parseFrom(real);
+        Request request = ByteAndObject.deserialize(real);
 
-        byte[] bytes = message.getReturn().toByteArray();
-        if(bytes.length != 0) {
-            Remote.setResult(Integer.parseInt(message.getRandom()), ByteAndObject.toObject(bytes));
+        if(request.getServiceName() == null) {
+            Remote.setResult(request.getId(), request.getResult());
         } else {
-            Service.sendMessage(ctx.channel(), message);
+            Service.sendMessage(ctx.channel(), request);
         }
     }
 
     /**
-     * 最开始会调用的函数,但我需要通道回应我客户端的名字和公钥,这里空着
-     * @param ctx 通道上下文
+     * 发送消息的最终体
+     * @param request 发送体
+     * @param channel 通道
      */
-    @Override
-    public void handlerAdded(ChannelHandlerContext ctx) {
-//        BasicService.addChannel(ctx);
+    public static void sendFinal(Request request,Channel channel) {
+        double d = Math.random();
+        request.setRandom(d);
+
+        Data.Message.Builder builder1 = Data.Message.newBuilder();
+        byte[] crypto = Basic.getAes().encode(ByteAndObject.serialize(request));
+        builder1.setBody(ByteString.copyFrom(crypto));
+
+
+        channel.writeAndFlush(builder1.build());
     }
 
     /**
@@ -78,22 +85,5 @@ public class ChannelHandler extends SimpleChannelInboundHandler<Data.Message> {
         cause.printStackTrace();
 
         ctx.close();
-    }
-
-    /**
-     * 发送消息的最终体
-     * @param order 发送体
-     * @param channel 通道
-     */
-    public static void sendFinal(Order.Message.Builder order,Channel channel) {
-        double d = Math.random();
-        order.setOrder(ByteString.copyFrom(String.valueOf(d).getBytes()));
-
-        final Data.Message.Builder builder1 = Data.Message.newBuilder();
-        byte[] crypto = Basic.getAes().encode(order.build().toByteArray());
-        builder1.setBody(ByteString.copyFrom(crypto));
-
-
-        channel.writeAndFlush(builder1.build());
     }
 }

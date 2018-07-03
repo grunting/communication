@@ -1,8 +1,6 @@
 package cn.gp.model;
 
 import cn.gp.handler.Remote;
-import cn.gp.proto.Data;
-import cn.gp.proto.Order;
 import com.google.protobuf.ByteString;
 import io.netty.channel.Channel;
 
@@ -24,9 +22,9 @@ public class ClientBean {
     private String channelId;
 
     // 需要处理rpc的队列
-    private ConcurrentLinkedQueue<Order.Message.Builder> sendQueue = new ConcurrentLinkedQueue<Order.Message.Builder>();
+    private ConcurrentLinkedQueue<Request> sendQueue = new ConcurrentLinkedQueue<Request>();
 
-    public ConcurrentLinkedQueue<Order.Message.Builder> getSendQueue() {
+    public ConcurrentLinkedQueue<Request> getSendQueue() {
         return sendQueue;
     }
 
