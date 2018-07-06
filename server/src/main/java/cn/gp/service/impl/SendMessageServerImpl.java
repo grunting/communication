@@ -1,10 +1,10 @@
-package cn.gp.service;
+package cn.gp.service.impl;
 
 import cn.gp.handler.Remote;
 import cn.gp.model.Basic;
 import cn.gp.model.ClientBean;
-import cn.gp.service.impl.SendMessage;
-import cn.gp.service.impl.SendMessageServer;
+import cn.gp.service.SendMessage;
+import cn.gp.service.SendMessageServer;
 import io.netty.channel.Channel;
 
 /**

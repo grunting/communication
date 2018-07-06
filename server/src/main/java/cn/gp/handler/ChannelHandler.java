@@ -3,7 +3,7 @@ package cn.gp.handler;
 import cn.gp.model.Basic;
 import cn.gp.model.Request;
 import cn.gp.proto.Data;
-import cn.gp.service.RegisterServerImpl;
+import cn.gp.service.impl.RegisterServerImpl;
 import cn.gp.util.ByteAndObject;
 import com.google.protobuf.ByteString;
 import io.netty.channel.Channel;
