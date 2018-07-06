@@ -1,10 +1,10 @@
-package cn.gp.service;
+package cn.gp.service.impl;
 
 
 
 import cn.gp.handler.Remote;
-import cn.gp.service.impl.FileStream;
-import cn.gp.service.impl.FileStreamServer;
+import cn.gp.service.FileStream;
+import cn.gp.service.FileStreamServer;
 
 import java.io.File;
 import java.io.FileInputStream;

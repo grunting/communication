@@ -1,4 +1,4 @@
-package cn.gp.service.impl;
+package cn.gp.service;
 
 import com.google.protobuf.ByteString;
 

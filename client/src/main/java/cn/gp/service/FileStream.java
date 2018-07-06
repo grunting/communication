@@ -1,4 +1,4 @@
-package cn.gp.service.impl;
+package cn.gp.service;
 
 /**
  * 文件传输协议

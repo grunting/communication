@@ -1,10 +1,10 @@
-package cn.gp.service;
+package cn.gp.service.impl;
 
 import cn.gp.handler.Remote;
 import cn.gp.model.Basic;
 import cn.gp.model.Friend;
-import cn.gp.service.impl.RegisterServer;
-import cn.gp.service.impl.Report;
+import cn.gp.service.RegisterServer;
+import cn.gp.service.Report;
 import com.google.protobuf.ByteString;
 
 /**
