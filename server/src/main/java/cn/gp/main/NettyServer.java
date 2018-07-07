@@ -1,6 +1,7 @@
 package cn.gp.main;
 
 import cn.gp.handler.ChannelHandler;
+import cn.gp.handler.Remote;
 import cn.gp.handler.Service;
 import cn.gp.proto.Data;
 import io.netty.bootstrap.ServerBootstrap;
@@ -45,9 +46,6 @@ public class NettyServer {
                     .option(ChannelOption.SO_BACKLOG, 1024)
                     // 是否启用心跳保活机制。在双方TCP套接字建立连接后（即都进入ESTABLISHED状态）并且在两个小时左右上层没有任何数据传输的情况下，这套机制才会被激活。
                     .childOption(ChannelOption.SO_KEEPALIVE, true);
-
-            Service service = new Service();
-            service.start();
 
             ChannelFuture f = b.bind(8088).sync();
             f.channel().closeFuture().sync();

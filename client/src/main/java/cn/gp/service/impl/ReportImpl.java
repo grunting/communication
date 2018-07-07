@@ -17,9 +17,13 @@ public class ReportImpl implements Report {
      * @param name 丢失的名称
      */
     public void lostClient(String name) {
+        System.out.println(name);
+
         Basic.getFriends().remove(name);
 
+        System.out.println();
         System.out.println(Basic.getFriends().keySet());
+        System.out.print("order:");
     }
 
     /**
@@ -33,7 +37,9 @@ public class ReportImpl implements Report {
         Friend friend = new Friend(name,channelId,byteString);
         Basic.getFriends().put(name,friend);
 
+        System.out.println();
         System.out.println(Basic.getFriends().keySet());
+        System.out.print("order:");
 
     }
 
@@ -48,6 +54,8 @@ public class ReportImpl implements Report {
 
         RegisterServer registerServer = Remote.getRemoteProxyObj(RegisterServer.class);
         boolean b = registerServer.addClient(Basic.getName(),byteString);
+
+        System.out.println();
         System.out.println("上报的结果" + b);
     }
 }

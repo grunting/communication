@@ -29,7 +29,7 @@ public class Client {
         Basic.setServerKey(key);
 
         // 记录服务器密码
-        Basic.setAes(new AES(cn.gp.model.Basic.getServerKey()));
+        Basic.setAes(new AES(Basic.getServerKey()));
 
         NettyClient.run();
 

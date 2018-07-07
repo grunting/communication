@@ -12,36 +12,18 @@ import io.netty.channel.Channel;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * 处理远端发送过来的请求(实现本地rpc服务端)
  */
 public class Service {
 
-    /**
-     * 内部类,记录信息应该给哪个通道执行
-     */
-    private static class Block {
-        private Channel channel;
-        private Request request;
-
-        public Block(Channel channel,Request request) {
-            this.channel = channel;
-            this.request = request;
-        }
-
-        public Channel getChannel() {
-            return channel;
-        }
-
-        public Request getRequest() {
-            return request;
-        }
-    }
-
     // 远程调用会用到的服务实现
     private static ConcurrentHashMap<String,Class> servers = new ConcurrentHashMap<String, Class>();
+
+    private static ExecutorService pool = Executors.newCachedThreadPool();
 
     static {
 
@@ -50,29 +32,29 @@ public class Service {
         servers.put(SendMessageServer.class.getName(), SendMessageServerImpl.class);
         servers.put(FileStreamServer.class.getName(), FileStreamServerImpl.class);
 
-    }
-
-    private static ConcurrentLinkedQueue<Block> sendQueue = new ConcurrentLinkedQueue<Block>();
-
-    /**
-     * 服务器处理部分,只有一个
-     */
-    public void start() {
-        Thread thread1 = new Thread() {
+        Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
                 super.run();
-                try {
-                    while(true) {
-                        while(sendQueue.isEmpty()) {
-                            Thread.sleep(10);
-                        }
+                pool.shutdown();
+            }
+        });
 
-                        Block block = sendQueue.poll();
+    }
 
-                        Channel channel = block.getChannel();
-                        Request request = block.getRequest();
+    /**
+     * 自身需要处理的信息
+     * @param channel 通道
+     * @param request 发送的信息
+     */
+    protected synchronized static void sendMessage(final Channel channel, final Request request) {
+        try {
 
+            Thread thread = new Thread() {
+                @Override
+                public void run() {
+                    super.run();
+                    try {
                         Integer id = request.getId();
                         String serviceName = request.getServiceName();
                         String methodName = request.getMethodName();
@@ -91,32 +73,18 @@ public class Service {
 
                         Object result = method.invoke(cons.newInstance(args),arguments);
 
-                        request = new Request();
-                        request.setId(id);
-                        request.setResult(result);
+                        Request request1 = new Request();
+                        request1.setId(id);
+                        request1.setResult(result);
 
-                        ChannelHandler.sendFinal(request,channel);
+                        ChannelHandler.sendFinal(request1,channel);
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
                 }
-            }
-        };
-        thread1.start();
-    }
+            };
 
-    /**
-     * 自身需要处理的信息
-     * @param channel 通道
-     * @param request 发送的信息
-     */
-    protected synchronized static void sendMessage(Channel channel,Request request) {
-        try {
-            Block block = new Block(channel,request);
-
-            while(!sendQueue.offer(block)) {
-                Thread.sleep(10);
-            }
+            pool.submit(thread);
         } catch (Exception e) {
             e.printStackTrace();
         }

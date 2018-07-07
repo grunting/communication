@@ -33,7 +33,7 @@ public class FileStreamServerImpl implements FileStreamServer {
             }
         }
 
-        FileStream fileStream = Remote.getRemoteProxyObj(FileStream.class,target.getSendQueue());
+        FileStream fileStream = Remote.getRemoteProxyObj(FileStream.class,target.getChannel());
         fileStream.recoveFile(fileName,bytes);
     }
 }

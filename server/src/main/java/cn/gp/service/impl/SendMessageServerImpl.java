@@ -36,7 +36,7 @@ public class SendMessageServerImpl implements SendMessageServer {
             }
         }
 
-        SendMessage sendMessage = Remote.getRemoteProxyObj(SendMessage.class,target.getSendQueue());
+        SendMessage sendMessage = Remote.getRemoteProxyObj(SendMessage.class,target.getChannel());
         sendMessage.recoveMessage(self.getName(),message);
     }
 }

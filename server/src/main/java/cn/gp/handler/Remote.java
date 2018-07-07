@@ -7,9 +7,7 @@ import io.netty.util.internal.ConcurrentSet;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -25,32 +23,17 @@ public class Remote {
     // 获取命令号
     private static AtomicInteger atomicInteger = new AtomicInteger(1);
 
-    /**
-     * 每个客户端运行一个
-     * @param channel 通道
-     * @param sendQueue 需要处理的队列
-     */
-    public void start(final Channel channel, final ConcurrentLinkedQueue<Request> sendQueue) {
-        Thread thread = new Thread() {
+    // 使用线程池
+    private static ExecutorService pool = Executors.newCachedThreadPool();
 
+    static {
+        Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
                 super.run();
-                try {
-                    while(true) {
-                        while(sendQueue.isEmpty()) {
-                            Thread.sleep(10);
-                        }
-
-                        Request request = sendQueue.poll();
-                        ChannelHandler.sendFinal(request, channel);
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                pool.shutdown();
             }
-        };
-        thread.start();
+        });
     }
 
     /**
@@ -69,18 +52,17 @@ public class Remote {
     /**
      * 实现远程调用
      * @param serviceInterface 接口类
-     * @param sendQueue 处理该消息的队列
      * @param <T> 强转为接口类型
      * @return 返回接口实例
      */
-    public static <T> T getRemoteProxyObj(final Class<?> serviceInterface, final ConcurrentLinkedQueue<Request> sendQueue) {
+    public static <T> T getRemoteProxyObj(final Class<?> serviceInterface, final Channel channel) {
         return (T) Proxy.newProxyInstance(serviceInterface.getClassLoader(), new Class<?>[]{serviceInterface}, new InvocationHandler() {
             public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
                 String serviceName = serviceInterface.getName();
                 String methodName = method.getName();
                 Class<?>[] parameterTypes = method.getParameterTypes();
 
-                Request request = new Request();
+                final Request request = new Request();
                 request.setServiceName(serviceName);
                 request.setMethodName(methodName);
                 request.setParameterTypes(parameterTypes);
@@ -89,7 +71,15 @@ public class Remote {
                 Integer id = atomicInteger.getAndAdd(1);
                 request.setId(id);
 
-                sendQueue.offer(request);
+                Thread thread = new Thread() {
+                    @Override
+                    public void run() {
+                        super.run();
+                        ChannelHandler.sendFinal(request,channel);
+                    }
+                };
+                // 向线程池提交任务
+                pool.submit(thread);
 
                 Object o;
                 while(true) {

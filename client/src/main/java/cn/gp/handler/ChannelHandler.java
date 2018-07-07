@@ -1,5 +1,6 @@
 package cn.gp.handler;
 
+import cn.gp.crypto.SHA;
 import cn.gp.model.Basic;
 import cn.gp.model.Request;
 import cn.gp.proto.Data;
@@ -24,29 +25,51 @@ public class ChannelHandler extends SimpleChannelInboundHandler<Data.Message> {
     protected void messageReceived(ChannelHandlerContext ctx, Data.Message msg) throws Exception {
 
         byte[] real = Basic.getAes().decode(msg.getBody().toByteArray());
-
         Request request = ByteAndObject.deserialize(real);
 
+        // 从远端拿到执行结果
         if(request.getServiceName() == null) {
             Remote.setResult(request.getId(), request.getResult());
+
+        // 需要本地执行的任务
         } else {
             Service.sendMessage(request);
         }
     }
 
     /**
-     * 发送消息的最终体
+     * 发送给远端
      * @param request 发送体
      * @param channel 通道
      */
     public static void sendFinal(Request request,Channel channel) {
-        double d = Math.random();
-        request.setRandom(d);
 
         Data.Message.Builder builder1 = Data.Message.newBuilder();
         byte[] crypto = Basic.getAes().encode(ByteAndObject.serialize(request));
         builder1.setBody(ByteString.copyFrom(crypto));
 
         channel.writeAndFlush(builder1.build());
+    }
+
+
+    /**
+     * 获取请求体签名
+     * @param request 请求体
+     * @return 签名
+     */
+    private String getSha(Request request) {
+
+        byte[] shabefore1 = ByteAndObject.serialize(request);
+        byte[] shabefore2 = Basic.getServerKey().getBytes();
+
+        byte[] shaafter = new byte[3096];
+        for(int i = 0;i < 3000;i ++) {
+            shaafter[i] = shabefore1[i];
+        }
+        for(int i = 3000;i < shaafter.length;i ++) {
+            shaafter[i] = shabefore2[i - 3000];
+        }
+
+        return SHA.encodeSHA(shaafter);
     }
 }

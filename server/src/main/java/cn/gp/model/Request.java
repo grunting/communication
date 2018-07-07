@@ -18,7 +18,7 @@ public class Request {
 
     private Object result;
 
-    private double random = Math.random();
+    private String random;
 
     public Integer getId() {
         return id;
@@ -28,7 +28,12 @@ public class Request {
         this.id = id;
     }
 
-    public void setRandom(double random) {
+
+    public String getRandom() {
+        return random;
+    }
+
+    public void setRandom(String random) {
         this.random = random;
     }
 

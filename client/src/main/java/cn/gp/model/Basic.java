@@ -2,11 +2,10 @@ package cn.gp.model;
 
 import cn.gp.crypto.AES;
 import cn.gp.crypto.RSA;
-import cn.gp.proto.Data;
+import io.netty.channel.Channel;
 
 import java.security.KeyPair;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
 
 /**
@@ -26,6 +25,9 @@ public class Basic {
     // 非对称加密实例(本机实例,也可以说是id)
     private static KeyPair keyPair;
 
+    // 远端通道
+    private static Channel channel;
+
     static {
         try {
             keyPair = RSA.genKeyPair(1024);
@@ -34,6 +36,14 @@ public class Basic {
             System.out.println("无法生成自身秘钥");
             System.exit(1);
         }
+    }
+
+    public static Channel getChannel() {
+        return channel;
+    }
+
+    public static void setChannel(Channel channel) {
+        Basic.channel = channel;
     }
 
     // 记录同服务器的其他人

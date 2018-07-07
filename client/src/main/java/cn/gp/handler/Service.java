@@ -1,5 +1,6 @@
 package cn.gp.handler;
 
+import cn.gp.model.Basic;
 import cn.gp.model.Request;
 import cn.gp.service.impl.FileStreamImpl;
 import cn.gp.service.impl.ReportImpl;
@@ -7,24 +8,22 @@ import cn.gp.service.impl.SendMessageImpl;
 import cn.gp.service.FileStream;
 import cn.gp.service.Report;
 import cn.gp.service.SendMessage;
-import com.google.protobuf.ByteString;
-import io.netty.channel.Channel;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * 处理远端发送过来的请求(实现本地rpc服务端)
  */
 public class Service {
 
-    // 远程调用会用到的参数
-    private static ConcurrentHashMap<String,Class> args = new ConcurrentHashMap<String, Class>();
-
     // 远程调用会用到的服务实现
     private static ConcurrentHashMap<String,Class> servers = new ConcurrentHashMap<String, Class>();
+
+    private static ExecutorService pool = Executors.newCachedThreadPool();
 
     static {
 
@@ -33,76 +32,50 @@ public class Service {
         servers.put(SendMessage.class.getName(), SendMessageImpl.class);
         servers.put(FileStream.class.getName(), FileStreamImpl.class);
 
-        // 实现服务时需要的参数
-        args.put(String.class.getName(), String.class);
-        args.put(ByteString.class.getName(),ByteString.class);
-        args.put(byte.class.getName(),byte.class);
-        args.put(byte[].class.getName(),byte[].class);
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            @Override
+            public void run() {
+                super.run();
+                pool.shutdown();
+            }
+        });
+
     }
 
-    // 远端通道
-    private static Channel channel;
-
-    // 自身需要处理的队列,是全局唯一的
-    private static ConcurrentLinkedQueue<Request> sendQueue = new ConcurrentLinkedQueue<Request>();
-
     /**
-     * 处理远端发来的请求,客户端全局唯一
-     * @param channel 通道
+     * 远端发送过来需要自身处理的信息
+     * @param request 信息
      */
-    public void start(Channel channel) {
-        Service.channel = channel;
-        Thread thread1 = new Thread() {
+    protected static void sendMessage(final Request request) {
+
+        Thread thread = new Thread() {
             @Override
             public void run() {
                 super.run();
                 try {
-                    while(true) {
-                        while(sendQueue.isEmpty()) {
-                            Thread.sleep(10);
-                        }
+                    Integer id = request.getId();
+                    String serviceName = request.getServiceName();
+                    String methodName = request.getMethodName();
+                    Class<?>[] parameterTypes = request.getParameterTypes();
+                    Object[] arguments = request.getArguments();
 
-                        Request request = sendQueue.poll();
+                    Class serviceClass = servers.get(serviceName);
 
-                        Integer id = request.getId();
-                        String serviceName = request.getServiceName();
-                        String methodName = request.getMethodName();
-                        Class<?>[] parameterTypes = request.getParameterTypes();
-                        Object[] arguments = request.getArguments();
+                    Constructor cons = serviceClass.getConstructor();
+                    Method method = serviceClass.getMethod(methodName,parameterTypes);
 
-                        Class serviceClass = servers.get(serviceName);
+                    Object result = method.invoke(cons.newInstance(),arguments);
 
-                        Constructor cons = serviceClass.getConstructor();
-                        Method method = serviceClass.getMethod(methodName,parameterTypes);
+                    Request request1 = new Request();
+                    request1.setId(id);
+                    request1.setResult(result);
 
-                        Object result = method.invoke(cons.newInstance(),arguments);
-
-                        request = new Request();
-                        request.setId(id);
-                        request.setResult(result);
-
-                        ChannelHandler.sendFinal(request,Service.channel);
-
-                    }
+                    ChannelHandler.sendFinal(request1, Basic.getChannel());
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
         };
-        thread1.start();
-    }
-
-    /**
-     * 远端发送过来需要自身处理的信息
-     * @param message 信息
-     */
-    protected static void sendMessage(Request message) {
-        try {
-            while(!sendQueue.offer(message)) {
-                Thread.sleep(10);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        pool.submit(thread);
     }
 }

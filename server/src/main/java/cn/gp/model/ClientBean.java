@@ -21,11 +21,11 @@ public class ClientBean {
     // 通道id
     private String channelId;
 
-    // 需要处理rpc的队列
-    private ConcurrentLinkedQueue<Request> sendQueue = new ConcurrentLinkedQueue<Request>();
+    // 通道
+    private Channel channel;
 
-    public ConcurrentLinkedQueue<Request> getSendQueue() {
-        return sendQueue;
+    public Channel getChannel() {
+        return channel;
     }
 
     public String getChannelId() {
@@ -42,8 +42,7 @@ public class ClientBean {
 
     public void setChannel(Channel channel) {
         this.channelId = channel.id().asLongText();
-        Remote remote = new Remote();
-        remote.start(channel,sendQueue);
+        this.channel = channel;
     }
 
     public ByteString getPublicPass() {

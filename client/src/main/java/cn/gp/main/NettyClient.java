@@ -2,6 +2,7 @@ package cn.gp.main;
 
 import cn.gp.handler.*;
 import cn.gp.handler.ChannelHandler;
+import cn.gp.model.Basic;
 import cn.gp.proto.Data;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
@@ -44,11 +45,7 @@ public class NettyClient {
 
             Channel channel = f.channel();
 
-            Remote remote = new Remote();
-            remote.start(channel);
-
-            Service service = new Service();
-            service.start(channel);
+            Basic.setChannel(channel);
 
             ScannerHandler.run();
 

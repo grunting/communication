@@ -48,11 +48,11 @@ public class RegisterServerImpl implements RegisterServer {
                 if(!clientBean.getName().equals(name)) {
 
                     // 除了自己,广播给其他客户端自己的存在
-                    Report report = Remote.getRemoteProxyObj(Report.class,clientBean.getSendQueue());
+                    Report report = Remote.getRemoteProxyObj(Report.class,clientBean.getChannel());
                     report.findClient(name,channel.id().asLongText(),byteString);
 
                     // 将其他客户端的信息发送给自己
-                    Report report2 = Remote.getRemoteProxyObj(Report.class,clientBeanSelf.getSendQueue());
+                    Report report2 = Remote.getRemoteProxyObj(Report.class,clientBeanSelf.getChannel());
                     report2.findClient(clientBean.getName(),clientBean.getChannelId(),clientBean.getPublicPass());
                 }
             }
@@ -71,14 +71,15 @@ public class RegisterServerImpl implements RegisterServer {
         for(ClientBean clientBean : Basic.getChannelMap().values()) {
             if (clientBean.getChannelId().equals(channel.id().asLongText())) {
                 name = clientBean.getName();
+                break;
             }
         }
         Basic.getChannelMap().remove(name);
 
         // 实现客户端调用
         for(ClientBean clientBean : Basic.getChannelMap().values()) {
-            Report report = Remote.getRemoteProxyObj(Report.class,clientBean.getSendQueue());
-            report.lostClient(clientBean.getName());
+            Report report = Remote.getRemoteProxyObj(Report.class,clientBean.getChannel());
+            report.lostClient(name);
         }
     }
 }

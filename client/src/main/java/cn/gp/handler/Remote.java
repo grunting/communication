@@ -1,15 +1,13 @@
 package cn.gp.handler;
 
+import cn.gp.model.Basic;
 import cn.gp.model.Request;
-import io.netty.channel.Channel;
 import io.netty.util.internal.ConcurrentSet;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -20,57 +18,22 @@ public class Remote {
     // 获取命令号(为处理返回提供唯一标记)
     private static AtomicInteger atomicInteger = new AtomicInteger(1);
 
-    // 通道
-    private static Channel channel;
-
     // 发送给远端的队列,是全局唯一的
-    private static ConcurrentLinkedQueue<Request> sendQueue = new ConcurrentLinkedQueue<Request>();
+    private static ExecutorService pool = Executors.newCachedThreadPool();
 
     // 缓存结果的地方,是全局唯一的
     private static ConcurrentMap<Integer,Object> result = new ConcurrentHashMap<Integer, Object>();
     // 暂时处理返回null的结果,是全局唯一的(void的函数会返回null)
     private static ConcurrentSet<Integer> result2 = new ConcurrentSet<Integer>();
 
-    /**
-     * 处理对远程的请求,客户端是惟一的
-     * @param channel 通道
-     */
-    public void start(Channel channel) {
-        Remote.channel = channel;
-        Thread thread1 = new Thread() {
+    static {
+        Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
                 super.run();
-                try {
-                    while(true) {
-                        while(sendQueue.isEmpty()) {
-                            Thread.sleep(10);
-                        }
-
-                        Request request = sendQueue.poll();
-
-                        ChannelHandler.sendFinal(request,Remote.channel);
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                pool.shutdown();
             }
-        };
-        thread1.start();
-    }
-
-    /**
-     * 将需要发送的消息交给队列
-     * @param request 消息
-     */
-    public static void sendMessage(Request request) {
-        try {
-            while(!sendQueue.offer(request)) {
-                Thread.sleep(10);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        });
     }
 
     /**
@@ -100,7 +63,7 @@ public class Remote {
                 String methodName = method.getName();
                 Class<?>[] parameterTypes = method.getParameterTypes();
 
-                Request request = new Request();
+                final Request request = new Request();
                 request.setServiceName(serviceName);
                 request.setMethodName(methodName);
                 request.setParameterTypes(parameterTypes);
@@ -109,7 +72,14 @@ public class Remote {
                 Integer id = atomicInteger.getAndAdd(1);
                 request.setId(id);
 
-                sendMessage(request);
+                Thread thread = new Thread() {
+                    @Override
+                    public void run() {
+                        super.run();
+                        ChannelHandler.sendFinal(request, Basic.getChannel());
+                    }
+                };
+                pool.submit(thread);
 
                 Object o;
                 while(true) {
