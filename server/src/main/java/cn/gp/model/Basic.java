@@ -21,8 +21,11 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class Basic {
 
-    // 服务器密码
-    private static String key;
+    // 用于连接服务器jks文件路径
+    private static String jksPath;
+
+    // 用于读取jks文件使用的密码
+    private static String passwd;
 
     // 对称加解密
     private static AES aes;
@@ -40,12 +43,20 @@ public class Basic {
         return channelMap;
     }
 
-    public static String getKey() {
-        return key;
+    public static String getJksPath() {
+        return jksPath;
     }
 
-    public static void setKey(String key) {
-        Basic.key = key;
+    public static void setJksPath(String jksPath) {
+        Basic.jksPath = jksPath;
+    }
+
+    public static String getPasswd() {
+        return passwd;
+    }
+
+    public static void setPasswd(String passwd) {
+        Basic.passwd = passwd;
     }
 
     public static AES getAes() {

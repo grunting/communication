@@ -16,8 +16,11 @@ public class Basic {
     // 客户端名称
     private static String name;
 
-    // 服务器密码
-    private static String serverKey;
+    // 用于连接服务器jks文件路径
+    private static String jksPath;
+
+    // 用于读取jks文件使用的密码
+    private static String passwd;
 
     // 服务器加密对象
     private static AES aes;
@@ -61,12 +64,12 @@ public class Basic {
         Basic.name = name;
     }
 
-    public static String getServerKey() {
-        return serverKey;
+    public static String getJksPath() {
+        return jksPath;
     }
 
-    public static void setServerKey(String serverKey) {
-        Basic.serverKey = serverKey;
+    public static void setJksPath(String jskPath) {
+        Basic.jksPath = jskPath;
     }
 
     public static KeyPair getKeyPair() {
@@ -79,5 +82,13 @@ public class Basic {
 
     public static void setAes(AES aes) {
         Basic.aes = aes;
+    }
+
+    public static String getPasswd() {
+        return passwd;
+    }
+
+    public static void setPasswd(String passwd) {
+        Basic.passwd = passwd;
     }
 }

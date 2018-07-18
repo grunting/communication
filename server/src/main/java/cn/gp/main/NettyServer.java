@@ -3,6 +3,7 @@ package cn.gp.main;
 import cn.gp.handler.ChannelHandler;
 import cn.gp.handler.Remote;
 import cn.gp.handler.Service;
+import cn.gp.model.Basic;
 import cn.gp.proto.Data;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
@@ -13,6 +14,15 @@ import io.netty.handler.codec.protobuf.ProtobufDecoder;
 import io.netty.handler.codec.protobuf.ProtobufEncoder;
 import io.netty.handler.codec.protobuf.ProtobufVarint32FrameDecoder;
 import io.netty.handler.codec.protobuf.ProtobufVarint32LengthFieldPrepender;
+import io.netty.handler.ssl.SslHandler;
+
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.TrustManagerFactory;
+import java.io.FileInputStream;
+import java.security.KeyManagementException;
+import java.security.KeyStore;
 
 /**
  * Netty服务端
@@ -35,6 +45,7 @@ public class NettyServer {
                         protected void initChannel(SocketChannel ch) throws Exception {
                             ChannelPipeline pipeline = ch.pipeline();
 
+                            pipeline.addLast(createSslHandler(initSSLContext(),true));
                             pipeline.addLast(new ProtobufVarint32FrameDecoder());
                             pipeline.addLast(new ProtobufDecoder(Data.Message.getDefaultInstance()));
                             pipeline.addLast(new ProtobufVarint32LengthFieldPrepender());
@@ -57,5 +68,36 @@ public class NettyServer {
             bossGroup.shutdownGracefully();
             System.out.println("[ChatServer 关闭了]");
         }
+    }
+
+    private static SslHandler createSslHandler(SSLContext sslContext, boolean needsClientAuth) {
+        SSLEngine sslEngine = sslContext.createSSLEngine();
+        sslEngine.setUseClientMode(false);
+        if (needsClientAuth) {
+            sslEngine.setNeedClientAuth(true);
+        }
+        return new SslHandler(sslEngine);
+    }
+
+    private static SSLContext initSSLContext() throws Exception{
+//        ClassLoader runtime = Thread.currentThread().getContextClassLoader();
+
+        KeyStore ks = KeyStore.getInstance("JKS");
+        ks.load(new FileInputStream(Basic.getJksPath()),Basic.getPasswd().toCharArray());
+//        ks.load(runtime.getResourceAsStream("sChat.jks"),"sNetty".toCharArray());
+        KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+        kmf.init(ks,Basic.getPasswd().toCharArray());
+
+        TrustManagerFactory trustManagerFactory =   TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+        trustManagerFactory.init(ks);
+
+        SSLContext sslContext = SSLContext.getInstance("TLS");
+        try {
+            sslContext.init(kmf.getKeyManagers(),trustManagerFactory.getTrustManagers(),null);
+        } catch (KeyManagementException e) {
+            e.printStackTrace();
+        }
+
+        return sslContext;
     }
 }

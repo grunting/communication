@@ -3,6 +3,7 @@ package cn.gp.main;
 import cn.gp.crypto.AES;
 import cn.gp.model.Basic;
 
+import java.io.File;
 import java.util.Scanner;
 
 /**
@@ -24,12 +25,16 @@ public class Client {
         String name = scanner.nextLine();
         Basic.setName(name);
 
-        System.out.print("input server key:");
+        System.out.print("input server jks file (absolute path):");
         String key = scanner.nextLine();
-        Basic.setServerKey(key);
+        Basic.setJksPath(key);
 
-        // 记录服务器密码
-        Basic.setAes(new AES(Basic.getServerKey()));
+        System.out.print("input server jks file password:");
+        key = scanner.nextLine();
+        Basic.setPasswd(key);
+
+//        记录服务器密码
+//        Basic.setAes(new AES(Basic.getServerKey()));
 
         NettyClient.run();
 

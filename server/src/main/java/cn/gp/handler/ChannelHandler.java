@@ -24,9 +24,10 @@ public class ChannelHandler extends SimpleChannelInboundHandler<Data.Message> {
     @Override
     protected void messageReceived(ChannelHandlerContext ctx, Data.Message msg) throws Exception {
 
-        byte[] real = Basic.getAes().decode(msg.getBody().toByteArray());
+//        byte[] real = Basic.getAes().decode(msg.getBody().toByteArray());
+//        Request request = ByteAndObject.deserialize(real);
 
-        Request request = ByteAndObject.deserialize(real);
+        Request request = ByteAndObject.deserialize(msg.getBody().toByteArray());
 
         if(request.getServiceName() == null) {
             Remote.setResult(request.getId(), request.getResult());
@@ -41,13 +42,12 @@ public class ChannelHandler extends SimpleChannelInboundHandler<Data.Message> {
      * @param channel 通道
      */
     public static void sendFinal(Request request,Channel channel) {
-        double d = Math.random();
-        request.setRandom(d);
 
         Data.Message.Builder builder1 = Data.Message.newBuilder();
-        byte[] crypto = Basic.getAes().encode(ByteAndObject.serialize(request));
-        builder1.setBody(ByteString.copyFrom(crypto));
+//        byte[] crypto = Basic.getAes().encode(ByteAndObject.serialize(request));
+//        builder1.setBody(ByteString.copyFrom(crypto));
 
+        builder1.setBody(ByteString.copyFrom(ByteAndObject.serialize(request)));
 
         channel.writeAndFlush(builder1.build());
     }

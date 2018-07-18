@@ -19,10 +19,15 @@ public class Server {
 
         // 启动准备
         Scanner scanner = new Scanner(System.in);
-        System.out.print("enter serverKey:");
+        System.out.print("input server jks file (absolute path):");
         String key = scanner.nextLine();
-        Basic.setKey(key);
-        Basic.setAes(new AES(key));
+        Basic.setJksPath(key);
+//        Basic.setKey(key);
+//        Basic.setAes(new AES(key));
+
+        System.out.print("input server jks file password:");
+        key = scanner.nextLine();
+        Basic.setPasswd(key);
 
         NettyServer.run();
 
