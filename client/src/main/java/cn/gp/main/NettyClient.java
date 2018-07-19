@@ -14,6 +14,10 @@ import io.netty.handler.codec.protobuf.ProtobufEncoder;
 import io.netty.handler.codec.protobuf.ProtobufVarint32FrameDecoder;
 import io.netty.handler.codec.protobuf.ProtobufVarint32LengthFieldPrepender;
 import io.netty.handler.ssl.SslHandler;
+import io.netty.handler.traffic.GlobalTrafficShapingHandler;
+import io.netty.handler.traffic.TrafficCounter;
+import io.netty.util.concurrent.DefaultEventExecutorGroup;
+import io.netty.util.concurrent.EventExecutorGroup;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -21,12 +25,41 @@ import javax.net.ssl.SSLEngine;
 import javax.net.ssl.TrustManagerFactory;
 import java.io.FileInputStream;
 import java.security.KeyStore;
+import java.util.concurrent.TimeUnit;
 
 
 /**
  * netty的客户端
  */
 public class NettyClient {
+
+    private static final EventExecutorGroup EXECUTOR_GROUOP = new DefaultEventExecutorGroup(Runtime.getRuntime().availableProcessors() * 2);
+    private static final GlobalTrafficShapingHandler trafficHandler = new GlobalTrafficShapingHandler(EXECUTOR_GROUOP, 3000, 3000);
+
+    static {
+
+        new Thread(new Runnable() {
+
+            public void run() {
+                while(true) {
+                    TrafficCounter trafficCounter = trafficHandler.trafficCounter();
+                    try {
+                        TimeUnit.SECONDS.sleep(5);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    final long totalRead = trafficCounter.cumulativeReadBytes();
+                    final long totalWrite = trafficCounter.cumulativeWrittenBytes();
+//                    System.out.println("total read:" + (totalRead >> 10) + " KB");
+//                    System.out.println("total write:" + (totalWrite >> 10) + " KB");
+//                    System.out.println("流量监控:" + System.lineSeparator() + trafficCounter);
+                }
+            }
+        }).start();
+    }
+
+
+
 
     /**
      * netty通用客户端实现
@@ -41,12 +74,13 @@ public class NettyClient {
                         @Override
                         protected void initChannel(SocketChannel ch) throws Exception {
                             ChannelPipeline channelPipeline = ch.pipeline();
+                            channelPipeline.addLast(trafficHandler);
                             channelPipeline.addLast(createSslHandler(getClientSSLContext()));
                             channelPipeline.addLast(new ProtobufVarint32FrameDecoder());
                             channelPipeline.addLast(new ProtobufDecoder(Data.Message.getDefaultInstance()));
                             channelPipeline.addLast(new ProtobufVarint32LengthFieldPrepender());
                             channelPipeline.addLast(new ProtobufEncoder());
-                            channelPipeline.addLast(new ChannelHandler());
+                            channelPipeline.addLast(EXECUTOR_GROUOP,new ChannelHandler());
                         }
                     })
                     .option(ChannelOption.TCP_NODELAY,true);

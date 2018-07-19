@@ -15,6 +15,10 @@ import io.netty.handler.codec.protobuf.ProtobufEncoder;
 import io.netty.handler.codec.protobuf.ProtobufVarint32FrameDecoder;
 import io.netty.handler.codec.protobuf.ProtobufVarint32LengthFieldPrepender;
 import io.netty.handler.ssl.SslHandler;
+import io.netty.handler.traffic.GlobalTrafficShapingHandler;
+import io.netty.handler.traffic.TrafficCounter;
+import io.netty.util.concurrent.DefaultEventExecutorGroup;
+import io.netty.util.concurrent.EventExecutorGroup;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -23,18 +27,43 @@ import javax.net.ssl.TrustManagerFactory;
 import java.io.FileInputStream;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Netty服务端
  */
 public class NettyServer {
 
+    // 限流相关
+    private static final EventExecutorGroup EXECUTOR_GROUOP = new DefaultEventExecutorGroup(Runtime.getRuntime().availableProcessors() * 2);
+    private static final GlobalTrafficShapingHandler trafficHandler = new GlobalTrafficShapingHandler(EXECUTOR_GROUOP, 3000, 3000);
+
+    static {
+        new Thread(new Runnable() {
+
+            public void run() {
+                while(true) {
+                    TrafficCounter trafficCounter = trafficHandler.trafficCounter();
+                    try {
+                        TimeUnit.SECONDS.sleep(5);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    final long totalRead = trafficCounter.cumulativeReadBytes();
+                    final long totalWrite = trafficCounter.cumulativeWrittenBytes();
+                    System.out.println(trafficCounter + ", Total read:" + (totalRead >> 10) + " KB, Total write:" + (totalWrite >> 10) + " KB");
+                }
+            }
+        }).start();
+    }
+
+
     /**
      * netty通用服务端实现
      */
     public static void run() {
-        EventLoopGroup bossGroup = new NioEventLoopGroup(100);// boss线程池
-        EventLoopGroup workerGroup = new NioEventLoopGroup(100);// worker线程池
+        EventLoopGroup bossGroup = new NioEventLoopGroup(2);// boss线程池
+        EventLoopGroup workerGroup = new NioEventLoopGroup(10);// worker线程池
 
         try {
             ServerBootstrap b = new ServerBootstrap();
@@ -45,12 +74,13 @@ public class NettyServer {
                         protected void initChannel(SocketChannel ch) throws Exception {
                             ChannelPipeline pipeline = ch.pipeline();
 
+                            pipeline.addLast(trafficHandler);
                             pipeline.addLast(createSslHandler(initSSLContext(),true));
                             pipeline.addLast(new ProtobufVarint32FrameDecoder());
                             pipeline.addLast(new ProtobufDecoder(Data.Message.getDefaultInstance()));
                             pipeline.addLast(new ProtobufVarint32LengthFieldPrepender());
                             pipeline.addLast(new ProtobufEncoder());
-                            pipeline.addLast(new ChannelHandler());
+                            pipeline.addLast(EXECUTOR_GROUOP,new ChannelHandler());
                         }
                     })
                     // BACKLOG用于构造服务端套接字ServerSocket对象，标识当服务器请求处理线程全满时，用于临时存放已完成三次握手的请求的队列的最大长度。如果未设置或所设置的值小于1，Java将使用默认值50。
