@@ -4,7 +4,7 @@
 --------
 
 - 包括服务端
-启动server主类（server.java），输入jks文件所在绝对路径，输入读取jks所需密码，以启动服务端
+修改配置文件，启动server主类（server.java），以启动服务端
 - 包括客户端
-启动client主类（client.java），输入客户端名称，输入读取jks文件所在绝对路径，输入读取jks所需密码，以启动客户端
+修改配置文件，启动client主类（client.java），以启动客户端
 

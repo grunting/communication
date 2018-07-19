@@ -4,6 +4,8 @@ import cn.gp.handler.*;
 import cn.gp.handler.ChannelHandler;
 import cn.gp.model.Basic;
 import cn.gp.proto.Data;
+import cn.gp.util.Configure;
+import cn.gp.util.Constant;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -15,7 +17,6 @@ import io.netty.handler.codec.protobuf.ProtobufVarint32FrameDecoder;
 import io.netty.handler.codec.protobuf.ProtobufVarint32LengthFieldPrepender;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.traffic.GlobalTrafficShapingHandler;
-import io.netty.handler.traffic.TrafficCounter;
 import io.netty.util.concurrent.DefaultEventExecutorGroup;
 import io.netty.util.concurrent.EventExecutorGroup;
 
@@ -25,7 +26,6 @@ import javax.net.ssl.SSLEngine;
 import javax.net.ssl.TrustManagerFactory;
 import java.io.FileInputStream;
 import java.security.KeyStore;
-import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -33,33 +33,11 @@ import java.util.concurrent.TimeUnit;
  */
 public class NettyClient {
 
+    // 限流相关
     private static final EventExecutorGroup EXECUTOR_GROUOP = new DefaultEventExecutorGroup(Runtime.getRuntime().availableProcessors() * 2);
-    private static final GlobalTrafficShapingHandler trafficHandler = new GlobalTrafficShapingHandler(EXECUTOR_GROUOP, 3000, 3000);
-
-    static {
-
-        new Thread(new Runnable() {
-
-            public void run() {
-                while(true) {
-                    TrafficCounter trafficCounter = trafficHandler.trafficCounter();
-                    try {
-                        TimeUnit.SECONDS.sleep(5);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                    final long totalRead = trafficCounter.cumulativeReadBytes();
-                    final long totalWrite = trafficCounter.cumulativeWrittenBytes();
-//                    System.out.println("total read:" + (totalRead >> 10) + " KB");
-//                    System.out.println("total write:" + (totalWrite >> 10) + " KB");
-//                    System.out.println("流量监控:" + System.lineSeparator() + trafficCounter);
-                }
-            }
-        }).start();
-    }
-
-
-
+    private static final GlobalTrafficShapingHandler trafficHandler = new GlobalTrafficShapingHandler(EXECUTOR_GROUOP,
+            Configure.getConfigInteger(Constant.CLIENT_NETTY_WRITELIMIT),
+            Configure.getConfigInteger(Constant.CLIENT_NETTY_READLIMIT));
 
     /**
      * netty通用客户端实现
@@ -84,14 +62,10 @@ public class NettyClient {
                         }
                     })
                     .option(ChannelOption.TCP_NODELAY,true);
-            ChannelFuture f = b.connect("localhost",8088).sync();
-
+            ChannelFuture f = b.connect(Configure.getConfigString(Constant.SERVER_HOST),Configure.getConfigInteger(Constant.SERVER_PORT)).sync();
             Channel channel = f.channel();
-
             Basic.setChannel(channel);
-
             ScannerHandler.run();
-
             f.channel().closeFuture().sync();
 
         } catch (Exception e) {
@@ -113,13 +87,14 @@ public class NettyClient {
     }
 
     private static SSLContext getClientSSLContext() throws Exception {
-//        ClassLoader runtime = Thread.currentThread().getContextClassLoader();
 
-        KeyStore trustKeyStore= KeyStore.getInstance("JKS");// 访问Java密钥库，JKS是keytool创建的Java密钥库
+        // 访问Java密钥库，JKS是keytool创建的Java密钥库
+        KeyStore trustKeyStore= KeyStore.getInstance("JKS");
         trustKeyStore.load(new FileInputStream(Basic.getJksPath()),Basic.getPasswd().toCharArray());
-//        trustKeyStore.load(runtime.getResourceAsStream("cChat.jks"),"cNetty".toCharArray());
-        TrustManagerFactory trustManagerFactory =   TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-        trustManagerFactory.init(trustKeyStore);//保存服务端的授权证书
+        TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+
+        //保存服务端的授权证书
+        trustManagerFactory.init(trustKeyStore);
 
         KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
         kmf.init(trustKeyStore,Basic.getPasswd().toCharArray());

@@ -5,6 +5,8 @@ import cn.gp.handler.Remote;
 import cn.gp.handler.Service;
 import cn.gp.model.Basic;
 import cn.gp.proto.Data;
+import cn.gp.util.Configure;
+import cn.gp.util.Constant;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -36,7 +38,9 @@ public class NettyServer {
 
     // 限流相关
     private static final EventExecutorGroup EXECUTOR_GROUOP = new DefaultEventExecutorGroup(Runtime.getRuntime().availableProcessors() * 2);
-    private static final GlobalTrafficShapingHandler trafficHandler = new GlobalTrafficShapingHandler(EXECUTOR_GROUOP, 3000, 3000);
+    private static final GlobalTrafficShapingHandler trafficHandler = new GlobalTrafficShapingHandler(EXECUTOR_GROUOP,
+            Configure.getConfigInteger(Constant.SERVER_NETTY_WRITELIMIT),
+            Configure.getConfigInteger(Constant.SERVER_NETTY_READLIMIT));
 
     static {
         new Thread(new Runnable() {
@@ -88,7 +92,7 @@ public class NettyServer {
                     // 是否启用心跳保活机制。在双方TCP套接字建立连接后（即都进入ESTABLISHED状态）并且在两个小时左右上层没有任何数据传输的情况下，这套机制才会被激活。
                     .childOption(ChannelOption.SO_KEEPALIVE, true);
 
-            ChannelFuture f = b.bind(8088).sync();
+            ChannelFuture f = b.bind(Configure.getConfigInteger(Constant.SERVER_PORT)).sync();
             f.channel().closeFuture().sync();
 
         } catch (Exception e) {
@@ -110,11 +114,9 @@ public class NettyServer {
     }
 
     private static SSLContext initSSLContext() throws Exception{
-//        ClassLoader runtime = Thread.currentThread().getContextClassLoader();
 
         KeyStore ks = KeyStore.getInstance("JKS");
         ks.load(new FileInputStream(Basic.getJksPath()),Basic.getPasswd().toCharArray());
-//        ks.load(runtime.getResourceAsStream("sChat.jks"),"sNetty".toCharArray());
         KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
         kmf.init(ks,Basic.getPasswd().toCharArray());
 

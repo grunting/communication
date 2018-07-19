@@ -1,9 +1,8 @@
 package cn.gp.main;
 
-import cn.gp.crypto.AES;
 import cn.gp.model.Basic;
-
-import java.util.Scanner;
+import cn.gp.util.Configure;
+import cn.gp.util.Constant;
 
 /**
  * 服务器
@@ -18,16 +17,10 @@ public class Server {
     public static void main(String[] args) throws Exception {
 
         // 启动准备
-        Scanner scanner = new Scanner(System.in);
-        System.out.print("input server jks file (absolute path):");
-        String key = scanner.nextLine();
-        Basic.setJksPath(key);
-//        Basic.setKey(key);
-//        Basic.setAes(new AES(key));
+        System.out.println("Server start");
 
-        System.out.print("input server jks file password:");
-        key = scanner.nextLine();
-        Basic.setPasswd(key);
+        Basic.setJksPath(Configure.getConfigString(Constant.SERVER_JKS_PATH));
+        Basic.setPasswd(Configure.getConfigString(Constant.SERVER_JKS_PASS));
 
         NettyServer.run();
 
