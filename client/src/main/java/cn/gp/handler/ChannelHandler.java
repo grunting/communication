@@ -6,9 +6,9 @@ import cn.gp.model.Request;
 import cn.gp.proto.Data;
 import cn.gp.util.ByteAndObject;
 import com.google.protobuf.ByteString;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.channel.*;
+import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.GenericFutureListener;
 
 /**
  * 客户端与远程的处理部分
@@ -54,6 +54,25 @@ public class ChannelHandler extends SimpleChannelInboundHandler<Data.Message> {
         builder1.setBody(ByteString.copyFrom(ByteAndObject.serialize(request)));
 
         channel.writeAndFlush(builder1.build());
+    }
+
+    /**
+     * 发送信息给远端同时返回异步操作结果
+     * @param request 发送体
+     * @param channel 通道
+     * @return 异步操作实例
+     */
+    public static ChannelFuture sendFinalChannelFuture(Request request,Channel channel) {
+
+        Data.Message.Builder builder1 = Data.Message.newBuilder();
+        builder1.setBody(ByteString.copyFrom(ByteAndObject.serialize(request)));
+
+//        channel.writeAndFlush(null).addListener(new ChannelFutureListener() {
+//            public void operationComplete(ChannelFuture future) throws Exception {
+//
+//            }
+//        });
+        return channel.writeAndFlush(builder1.build());
     }
 
 
