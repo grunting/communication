@@ -1,8 +1,6 @@
 package cn.gp.main;
 
-import cn.gp.model.Basic;
-import cn.gp.util.Configure;
-import cn.gp.util.Constant;
+import cn.gp.crypto.JksTool;
 
 /**
  * 服务器
@@ -18,9 +16,7 @@ public class Server {
 
         // 启动准备
         System.out.println("Server start");
-
-        Basic.setJksPath(Configure.getConfigString(Constant.SERVER_JKS_PATH));
-        Basic.setPasswd(Configure.getConfigString(Constant.SERVER_JKS_PASS));
+        System.out.println("Server name is " + JksTool.getAlias());
 
         NettyServer.run();
 

@@ -1,5 +1,6 @@
 package cn.gp.main;
 
+import cn.gp.crypto.JksTool;
 import cn.gp.handler.*;
 import cn.gp.handler.ChannelHandler;
 import cn.gp.model.Basic;
@@ -89,15 +90,13 @@ public class NettyClient {
     private static SSLContext getClientSSLContext() throws Exception {
 
         // 访问Java密钥库，JKS是keytool创建的Java密钥库
-        KeyStore trustKeyStore= KeyStore.getInstance("JKS");
-        trustKeyStore.load(new FileInputStream(Basic.getJksPath()),Basic.getPasswd().toCharArray());
         TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
 
         //保存服务端的授权证书
-        trustManagerFactory.init(trustKeyStore);
+        trustManagerFactory.init(JksTool.getKeyStore());
 
         KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-        kmf.init(trustKeyStore,Basic.getPasswd().toCharArray());
+        kmf.init(JksTool.getKeyStore(),Configure.getConfigString(Constant.CLIENT_JKS_KEYPASS).toCharArray());
 
         SSLContext clientContext = SSLContext.getInstance( "TLS");
         clientContext.init(kmf.getKeyManagers(), trustManagerFactory.getTrustManagers(), null);

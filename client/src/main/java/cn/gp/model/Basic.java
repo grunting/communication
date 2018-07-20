@@ -1,6 +1,5 @@
 package cn.gp.model;
 
-import cn.gp.crypto.AES;
 import cn.gp.crypto.RSA;
 import io.netty.channel.Channel;
 
@@ -15,15 +14,6 @@ public class Basic {
 
     // 客户端名称
     private static String name;
-
-    // 用于连接服务器jks文件路径
-    private static String jksPath;
-
-    // 用于读取jks文件使用的密码
-    private static String passwd;
-
-    // 服务器加密对象
-    private static AES aes;
 
     // 非对称加密实例(本机实例,也可以说是id)
     private static KeyPair keyPair;
@@ -64,31 +54,8 @@ public class Basic {
         Basic.name = name;
     }
 
-    public static String getJksPath() {
-        return jksPath;
-    }
-
-    public static void setJksPath(String jskPath) {
-        Basic.jksPath = jskPath;
-    }
-
     public static KeyPair getKeyPair() {
         return keyPair;
     }
 
-    public static AES getAes() {
-        return aes;
-    }
-
-    public static void setAes(AES aes) {
-        Basic.aes = aes;
-    }
-
-    public static String getPasswd() {
-        return passwd;
-    }
-
-    public static void setPasswd(String passwd) {
-        Basic.passwd = passwd;
-    }
 }

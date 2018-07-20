@@ -1,5 +1,6 @@
 package cn.gp.main;
 
+import cn.gp.crypto.JksTool;
 import cn.gp.handler.ChannelHandler;
 import cn.gp.handler.Remote;
 import cn.gp.handler.Service;
@@ -115,13 +116,11 @@ public class NettyServer {
 
     private static SSLContext initSSLContext() throws Exception{
 
-        KeyStore ks = KeyStore.getInstance("JKS");
-        ks.load(new FileInputStream(Basic.getJksPath()),Basic.getPasswd().toCharArray());
         KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-        kmf.init(ks,Basic.getPasswd().toCharArray());
+        kmf.init(JksTool.getKeyStore(),Configure.getConfigString(Constant.SERVER_JKS_KEYPASS).toCharArray());
 
         TrustManagerFactory trustManagerFactory =   TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-        trustManagerFactory.init(ks);
+        trustManagerFactory.init(JksTool.getKeyStore());
 
         SSLContext sslContext = SSLContext.getInstance("TLS");
         try {

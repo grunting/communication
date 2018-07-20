@@ -5,10 +5,9 @@ package cn.gp.util;
  */
 public enum Constant {
 
-    CLIENT_NAME,                // 客户端名称
-
     CLIENT_JKS_PATH,            // 客户端jks文件路径
-    CLIENT_JKS_PASS,            // 客户端jks文件访问密码
+    CLIENT_JKS_KEYPASS,         // 客户端jks文件访问密码
+    CLIENT_JKS_STOREPASS,       // 客户端jks文件秘钥访问密码
 
     CLIENT_NETTY_WRITELIMIT,    // 客户端netty写入限制
     CLIENT_NETTY_READLIMIT,     // 客户端netty读入限制
@@ -24,12 +23,13 @@ public enum Constant {
     protected static String getRealName(Constant constant) {
 
         switch (constant) {
-            case CLIENT_NAME:
-                return "client.name";
             case CLIENT_JKS_PATH:
                 return "client.jks.path";
-            case CLIENT_JKS_PASS:
-                return "client.jks.pass";
+            case CLIENT_JKS_KEYPASS:
+                return "client.jks.keypass";
+            case CLIENT_JKS_STOREPASS:
+                return "client.jks.storepass";
+
             case CLIENT_NETTY_WRITELIMIT:
                 return "client.netty.writelimit";
             case CLIENT_NETTY_READLIMIT:
