@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 
 # 生成netty服务端证书
 keytool -genkey -alias securechat -keysize 2048 -validity 365 -keyalg RSA -dname "CN=localhost" -keypass sNetty -storepass sNetty -keystore sChat.jks
