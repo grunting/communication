@@ -1,6 +1,7 @@
 package cn.gp.model;
 
 import cn.gp.handler.Remote;
+import cn.gp.service.IsAlive;
 import com.google.protobuf.ByteString;
 import io.netty.channel.Channel;
 
@@ -10,7 +11,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 /**
  * 客户端bean
  */
-public class ClientBean {
+public class ClientBean implements IsAlive {
 
     // 客户端名
     private String name;
@@ -51,5 +52,13 @@ public class ClientBean {
 
     public void setPublicPass(ByteString publicPass) {
         this.publicPass = publicPass;
+    }
+
+    /**
+     * 回应这个通道是否存活
+     * @return
+     */
+    public boolean isAlive() {
+        return this.channel.isActive();
     }
 }

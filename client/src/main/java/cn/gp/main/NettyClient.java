@@ -26,6 +26,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.TrustManagerFactory;
 import java.io.FileInputStream;
+import java.security.KeyManagementException;
 import java.security.KeyStore;
 
 
@@ -35,8 +36,10 @@ import java.security.KeyStore;
 public class NettyClient {
 
     // 限流相关
-    private static final EventExecutorGroup EXECUTOR_GROUOP = new DefaultEventExecutorGroup(Runtime.getRuntime().availableProcessors() * 2);
-    private static final GlobalTrafficShapingHandler trafficHandler = new GlobalTrafficShapingHandler(EXECUTOR_GROUOP,
+    private static final EventExecutorGroup EXECUTOR_GROUOP = new DefaultEventExecutorGroup(
+            Runtime.getRuntime().availableProcessors() * 2);
+    private static final GlobalTrafficShapingHandler trafficHandler = new GlobalTrafficShapingHandler(
+            EXECUTOR_GROUOP,
             Configure.getConfigInteger(Constant.CLIENT_NETTY_WRITELIMIT),
             Configure.getConfigInteger(Constant.CLIENT_NETTY_READLIMIT));
 
@@ -54,7 +57,7 @@ public class NettyClient {
                         protected void initChannel(SocketChannel ch) throws Exception {
                             ChannelPipeline channelPipeline = ch.pipeline();
                             channelPipeline.addLast(trafficHandler);
-                            channelPipeline.addLast(createSslHandler(getClientSSLContext()));
+                            channelPipeline.addLast(createSslHandler());
                             channelPipeline.addLast(new ProtobufVarint32FrameDecoder());
                             channelPipeline.addLast(new ProtobufDecoder(Data.Message.getDefaultInstance()));
                             channelPipeline.addLast(new ProtobufVarint32LengthFieldPrepender());
@@ -63,7 +66,11 @@ public class NettyClient {
                         }
                     })
                     .option(ChannelOption.TCP_NODELAY,true);
-            ChannelFuture f = b.connect(Configure.getConfigString(Constant.SERVER_HOST),Configure.getConfigInteger(Constant.SERVER_PORT)).sync();
+            ChannelFuture f = b.connect(
+                    Configure.getConfigString(
+                            Constant.SERVER_HOST),
+                    Configure.getConfigInteger(
+                            Constant.SERVER_PORT)).sync();
             Channel channel = f.channel();
             Basic.setChannel(channel);
             ScannerHandler.run();
@@ -81,13 +88,7 @@ public class NettyClient {
         }
     }
 
-    private static SslHandler createSslHandler(SSLContext sslContext) {
-        SSLEngine sslEngine = sslContext.createSSLEngine();
-        sslEngine.setUseClientMode(true);
-        return new SslHandler(sslEngine);
-    }
-
-    private static SSLContext getClientSSLContext() throws Exception {
+    private static SslHandler createSslHandler() throws Exception {
 
         // 访问Java密钥库，JKS是keytool创建的Java密钥库
         TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
@@ -101,6 +102,15 @@ public class NettyClient {
         SSLContext clientContext = SSLContext.getInstance( "TLS");
         clientContext.init(kmf.getKeyManagers(), trustManagerFactory.getTrustManagers(), null);
 
-        return clientContext;
+        SSLContext sslContext = SSLContext.getInstance("TLS");
+        try {
+            sslContext.init(kmf.getKeyManagers(),trustManagerFactory.getTrustManagers(),null);
+        } catch (KeyManagementException e) {
+            e.printStackTrace();
+        }
+
+        SSLEngine sslEngine = sslContext.createSSLEngine();
+        sslEngine.setUseClientMode(true);
+        return new SslHandler(sslEngine);
     }
 }

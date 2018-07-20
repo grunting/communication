@@ -75,12 +75,18 @@ public class NettyServer {
             b.group(bossGroup,workerGroup)
                     .channel(NioServerSocketChannel.class)
                     .childHandler(new ChannelInitializer<SocketChannel>() {
+
+                        /**
+                         * 注意这里每次有新连接都会调用一次
+                         * @param ch 通道
+                         * @throws Exception 报错
+                         */
                         @Override
                         protected void initChannel(SocketChannel ch) throws Exception {
                             ChannelPipeline pipeline = ch.pipeline();
 
                             pipeline.addLast(trafficHandler);
-                            pipeline.addLast(createSslHandler(initSSLContext(),true));
+                            pipeline.addLast(createSslHandler(true));
                             pipeline.addLast(new ProtobufVarint32FrameDecoder());
                             pipeline.addLast(new ProtobufDecoder(Data.Message.getDefaultInstance()));
                             pipeline.addLast(new ProtobufVarint32LengthFieldPrepender());
@@ -105,21 +111,21 @@ public class NettyServer {
         }
     }
 
-    private static SslHandler createSslHandler(SSLContext sslContext, boolean needsClientAuth) {
-        SSLEngine sslEngine = sslContext.createSSLEngine();
-        sslEngine.setUseClientMode(false);
-        if (needsClientAuth) {
-            sslEngine.setNeedClientAuth(true);
-        }
-        return new SslHandler(sslEngine);
-    }
-
-    private static SSLContext initSSLContext() throws Exception{
+    /**
+     * 给出加密处理
+     * @param needsClientAuth 是否需要验证客户端
+     * @return 返回加密处理实例
+     * @throws Exception 运行出错
+     */
+    private static SslHandler createSslHandler(boolean needsClientAuth) throws Exception {
 
         KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-        kmf.init(JksTool.getKeyStore(),Configure.getConfigString(Constant.SERVER_JKS_KEYPASS).toCharArray());
+        kmf.init(
+                JksTool.getKeyStore(),                                                  // 这里由JksTool提供静态加载,屏蔽动态添加
+                Configure.getConfigString(Constant.SERVER_JKS_KEYPASS).toCharArray());  // 由configure提供的参数配置
 
-        TrustManagerFactory trustManagerFactory =   TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+        TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(
+                TrustManagerFactory.getDefaultAlgorithm());
         trustManagerFactory.init(JksTool.getKeyStore());
 
         SSLContext sslContext = SSLContext.getInstance("TLS");
@@ -129,6 +135,11 @@ public class NettyServer {
             e.printStackTrace();
         }
 
-        return sslContext;
+        SSLEngine sslEngine = sslContext.createSSLEngine();
+        sslEngine.setUseClientMode(false);
+        if (needsClientAuth) {
+            sslEngine.setNeedClientAuth(true);
+        }
+        return new SslHandler(sslEngine);
     }
 }
