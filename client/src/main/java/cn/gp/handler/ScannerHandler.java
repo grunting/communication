@@ -19,7 +19,11 @@ public class ScannerHandler {
             @Override
             public void run() {
                 super.run();
-                send();
+                try {
+                    send();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         };
         thread.start();
@@ -28,7 +32,7 @@ public class ScannerHandler {
     /**
      * 执行实体
      */
-    public static void send() {
+    public static void send() throws Exception{
 
         ReportImpl.send();
 

@@ -1,11 +1,13 @@
 package cn.gp.model;
 
-import com.google.protobuf.ByteString;
+import cn.gp.service.IsAlive;
+
+import java.security.PublicKey;
 
 /**
  * 同服务器的其他客户端信息
  */
-public class Friend {
+public class Friend implements IsAlive {
 
     // 服务端记录的通道id
     private String channelId;
@@ -14,9 +16,11 @@ public class Friend {
     private String name;
 
     // 公钥(类似于身份证)
-    private ByteString key;
+    private PublicKey key;
 
-    public Friend(String channelId, String name, ByteString key) {
+    private boolean isAlive = true;
+
+    public Friend(String channelId, String name, PublicKey key) {
         this.channelId = channelId;
         this.name = name;
         this.key = key;
@@ -30,7 +34,20 @@ public class Friend {
         return name;
     }
 
-    public ByteString getKey() {
+    public PublicKey getKey() {
         return key;
+    }
+
+    public void setDie() {
+        isAlive = false;
+    }
+
+    public boolean isAlive() {
+        return isAlive;
+    }
+
+    @Override
+    public String toString() {
+        return "name:" + name + ",channelid:" + channelId;
     }
 }

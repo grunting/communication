@@ -1,11 +1,10 @@
 package cn.gp.model;
 
-import cn.gp.crypto.RSA;
+import cn.gp.crypto.JksTool;
+import cn.gp.util.IndexTest;
 import io.netty.channel.Channel;
 
 import java.security.KeyPair;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 /**
  * 基本信息集合
@@ -21,9 +20,12 @@ public class Basic {
     // 远端通道
     private static Channel channel;
 
+    // 朋友
+    private static IndexTest<Friend> indexTest = new IndexTest<Friend>();
+
     static {
         try {
-            keyPair = RSA.genKeyPair(1024);
+            keyPair = JksTool.getKeyPair();
         } catch(Exception e) {
             e.printStackTrace();
             System.out.println("无法生成自身秘钥");
@@ -39,13 +41,6 @@ public class Basic {
         Basic.channel = channel;
     }
 
-    // 记录同服务器的其他人
-    private static final ConcurrentMap<String,Friend> friends = new ConcurrentHashMap<String, Friend>();
-
-    public static ConcurrentMap<String, Friend> getFriends() {
-        return friends;
-    }
-
     public static String getName() {
         return name;
     }
@@ -56,6 +51,10 @@ public class Basic {
 
     public static KeyPair getKeyPair() {
         return keyPair;
+    }
+
+    public static IndexTest<Friend> getIndexTest() {
+        return indexTest;
     }
 
 }

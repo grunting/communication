@@ -45,4 +45,13 @@ public class Configure {
         return Integer.parseInt(properties.getProperty(Constant.getRealName(constant)));
 
     }
+
+    /**
+     * 获取配置文件内容
+     * @param constant 枚举
+     * @return 返回配置的布尔值
+     */
+    public static boolean getConfigBoolean(Constant constant) {
+        return Boolean.parseBoolean(properties.getProperty(Constant.getRealName(constant)));
+    }
 }

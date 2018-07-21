@@ -5,6 +5,7 @@ import cn.gp.service.IsAlive;
 import com.google.protobuf.ByteString;
 import io.netty.channel.Channel;
 
+import java.security.PublicKey;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 
@@ -17,13 +18,16 @@ public class ClientBean implements IsAlive {
     private String name;
 
     // 公钥
-    private ByteString publicPass;
+    private PublicKey publicKey;
 
     // 通道id
     private String channelId;
 
     // 通道
     private Channel channel;
+
+    // 是否存活
+    private boolean isAlive = true;
 
     public Channel getChannel() {
         return channel;
@@ -46,12 +50,19 @@ public class ClientBean implements IsAlive {
         this.channel = channel;
     }
 
-    public ByteString getPublicPass() {
-        return publicPass;
+    public PublicKey getPublicKey() {
+        return publicKey;
     }
 
-    public void setPublicPass(ByteString publicPass) {
-        this.publicPass = publicPass;
+    public void setPublicKey(PublicKey publicKey) {
+        this.publicKey = publicKey;
+    }
+
+    /**
+     * 设置节点失效
+     */
+    public void setDie() {
+        isAlive = false;
     }
 
     /**
@@ -59,6 +70,6 @@ public class ClientBean implements IsAlive {
      * @return
      */
     public boolean isAlive() {
-        return this.channel.isActive();
+        return isAlive && this.channel.isActive();
     }
 }

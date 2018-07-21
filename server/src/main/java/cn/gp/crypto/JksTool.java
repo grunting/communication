@@ -46,7 +46,7 @@ public class JksTool {
                     publicKey = smallPublicKey;
                     privateKey = smallPrivateKey;
                 } else {
-                    trustMap.put(smallAlias,publicKey);
+                    trustMap.put(smallAlias,smallPublicKey);
                 }
             }
             keyPair = new KeyPair(publicKey,privateKey);

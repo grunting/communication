@@ -27,7 +27,7 @@ public class FileStreamServerImpl implements FileStreamServer {
      */
     public void send(String name, String fileName, byte[] bytes) {
         ClientBean target = null;
-        for(ClientBean clientBean : Basic.getChannelMap().values()) {
+        for(ClientBean clientBean : Basic.getIndex().getNode("name",name)) {
             if (clientBean.getName().equals(name)) {
                 target = clientBean;
             }

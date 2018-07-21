@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
 # 生成netty服务端证书
-keytool -genkey -alias securechat -keysize 2048 -validity 365 -keyalg RSA -dname "CN=localhost" -keypass sNetty -storepass sNetty -keystore sChat.jks
+keytool -genkey -alias server -keysize 2048 -validity 365 -keyalg RSA -dname "CN=localhost" -keypass sNetty -storepass sNetty -keystore sChat.jks
 
 # 生成netty客户端证书
-keytool -genkey -alias smcc -keysize 2048 -validity 365 -keyalg RSA -dname "CN=localhost" -keypass cNetty -storepass cNetty -keystore cChat.jks
+keytool -genkey -alias gaopeng -keysize 2048 -validity 365 -keyalg RSA -dname "CN=localhost" -keypass cNetty -storepass cNetty -keystore cChat1.jks
 
 # 生成服务端自签名
 keytool -export -alias securechat -keystore sChat.jks -storepass sNetty -file sChat.cer
@@ -29,3 +29,4 @@ keytool -list -rfc -keystore sChat.jks
 # -keypass sNetty 密钥的访问密码为sNetty
 # -storepass sNetty 密钥库的访问密码为sNetty（通常都设置一样，方便记）
 # -keystore sChat.jks 指定生成的密钥库文件为gornix.jks
+# 注意: CN=localhost请改为正确域名

@@ -25,20 +25,20 @@ public class SendMessageServerImpl implements SendMessageServer {
      * @param message 信息
      */
     public void send(String name, String message) {
-        ClientBean self = null;
+        String self = null;
         ClientBean target = null;
-        for(ClientBean clientBean : Basic.getChannelMap().values()) {
-            if (clientBean.getChannelId().equals(channel.id().asLongText())) {
-                self = clientBean;
-            }
-            if (clientBean.getName().equals(name)) {
-                target = clientBean;
-            }
+
+        for (ClientBean clientBean : Basic.getIndex().getNode("channelid",channel.id().asLongText())) {
+            self = clientBean.getName();
         }
 
-        if (target != null) {
-            SendMessage sendMessage = Remote.getRemoteProxyObj(SendMessage.class,target.getChannel());
-            sendMessage.recoveMessage(self.getName(),message);
+        if (self == null) {
+            self = "none";
+        }
+
+        for (ClientBean clientBean : Basic.getIndex().getNode("names",name)) {
+            SendMessage sendMessage = Remote.getRemoteProxyObj(SendMessage.class,clientBean.getChannel());
+            sendMessage.recoveMessage(self,message);
         }
     }
 }
