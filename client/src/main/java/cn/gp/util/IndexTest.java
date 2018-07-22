@@ -79,6 +79,8 @@ public class IndexTest<K extends IsAlive> {
 
         nodes.add(node);
         values.put(value,nodes);
+
+        node.setProperties(key,value,index);
         index.put(key,values);
     }
 
@@ -153,60 +155,4 @@ public class IndexTest<K extends IsAlive> {
         }
         return result;
     }
-
-
-//    static class Test implements IsAlive {
-//
-//        private String name;
-//        private boolean b;
-//
-//        public Test(String name) {
-//            this.name = name;
-//        }
-//
-//        public void setAlive(boolean b) {
-//            this.b = b;
-//        }
-//
-//        @Override
-//        public String toString() {
-//            return name;
-//        }
-//
-//        public boolean isAlive() {
-//            return this.b;
-//        }
-//    }
-//
-//    public static void main(String[] args) {
-//
-//        IndexTest<Test> indexTest = new IndexTest<Test>();
-//
-//        Test t1 = new Test("a");
-//        t1.setAlive(true);
-//        Test t2 = new Test("b");
-//        t2.setAlive(true);
-//        Test t3 = new Test("c");
-//        t3.setAlive(true);
-//
-//        indexTest.setIndex("group1","1",t1);
-//        indexTest.setIndex("group1","2",t2);
-//
-//        indexTest.setIndex("group2","1",t2);
-//        indexTest.setIndex("group2","2",t3);
-//
-//        indexTest.setIndex("group3","1",t1);
-//        indexTest.setIndex("group3","2",t3);
-//
-//        System.out.println(indexTest.getNode("group1"));
-//        System.out.println(indexTest.getNode("group2"));
-//        System.out.println(indexTest.getNode("group3"));
-//
-//        t2.setAlive(false);
-//
-//        System.out.println(indexTest.getNode("group1"));
-//        System.out.println(indexTest.getNode("group2"));
-//        System.out.println(indexTest.getNode("group3"));
-//
-//    }
 }
