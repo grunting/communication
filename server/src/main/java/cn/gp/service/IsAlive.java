@@ -1,17 +1,25 @@
 package cn.gp.service;
 
-import io.netty.util.internal.ConcurrentSet;
-
-import java.util.concurrent.ConcurrentMap;
-
 /**
  * 索引会用到的询问接口
  */
 public interface IsAlive<K> {
 
+    /**
+     * 当前节点是否存活
+     * @return 存活与否
+     */
     boolean isAlive();
 
+    /**
+     * 设置本节点死亡并进行后续操作
+     */
     void setDie();
 
-    void setProperties(String key, String value,ConcurrentMap<String,ConcurrentMap<String,ConcurrentSet<K>>> index);
+    /**
+     * 给予自身属性
+     * @param key 键
+     * @param value 值
+     */
+    void setProperties(String key, String value);
 }

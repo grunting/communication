@@ -6,7 +6,7 @@ package cn.gp.util;
 public enum Constant {
 
     SERVER_PORT,                        // 服务器端口
-    SERVER_SECURITY_STRICTVAILDATION,   // 对客户端是否进行进行严格验证,即上报的用户名与公钥串必须出现在jks文件中
+    SERVER_SECURITY_STRICTVAILDATION,   // 对客户端是否进行进行严格验证,即上报的用户名与公钥串必须出现在jks文件中,并且能够证明自身
 
 
     SERVER_JKS_PATH,                    // 服务端jks文件路径

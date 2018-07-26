@@ -5,7 +5,10 @@ import cn.gp.model.Basic;
 import cn.gp.model.ClientBean;
 import cn.gp.service.FileStream;
 import cn.gp.service.FileStreamServer;
+import cn.gp.service.Group;
 import io.netty.channel.Channel;
+
+import java.util.Set;
 
 /**
  * 文件传输服务端实现
@@ -20,20 +23,52 @@ public class FileStreamServerImpl implements FileStreamServer {
     }
 
     /**
-     * 发送消息给指定得人
-     * @param name 接收人
+     * 发送文件
+     * @param groupId 分组id
      * @param fileName 文件名
      * @param bytes 数据流
+     * @param index 当前数据包序号
+     * @return 返回发送结果
      */
-    public void send(String name, String fileName, byte[] bytes) {
-        ClientBean target = null;
-        for(ClientBean clientBean : Basic.getIndex().getNode("name",name)) {
-            if (clientBean.getName().equals(name)) {
-                target = clientBean;
+    public boolean send(String groupId, String fileName, byte[] bytes, int index) {
+
+        ClientBean clientBeanSelf = Basic.getIndex().getNode("channelid",channel.id().asLongText()).iterator().next();
+        Set<ClientBean> set = Basic.getIndex().getNode(groupId);
+
+        int count = 0;
+        for (ClientBean clientBean : set) {
+            if (!clientBean.equals(clientBeanSelf)) {
+                FileStream fileStream = Remote.getRemoteProxyObj(FileStream.class,clientBean.getChannel());
+                if (fileStream.recoveFile(groupId,clientBeanSelf.getName(),fileName,index,bytes)) {
+                    count ++;
+                }
             }
         }
 
-        FileStream fileStream = Remote.getRemoteProxyObj(FileStream.class,target.getChannel());
-        fileStream.recoveFile(fileName,bytes);
+        return count == set.size() - 1;
+    }
+
+    /**
+     * 创建文件夹
+     * @param groupId 分组id
+     * @param path 相对路径
+     * @return
+     */
+    public boolean createDir(String groupId,String path) {
+
+        ClientBean clientBeanSelf = Basic.getIndex().getNode("channelid",channel.id().asLongText()).iterator().next();
+        Set<ClientBean> set = Basic.getIndex().getNode(groupId);
+
+        int count = 0;
+        for (ClientBean clientBean : set) {
+            if (!clientBean.equals(clientBeanSelf)) {
+                FileStream fileStream = Remote.getRemoteProxyObj(FileStream.class,clientBean.getChannel());
+                if (fileStream.createDir(path)) {
+                    count ++;
+                }
+            }
+        }
+
+        return count == set.size() - 1;
     }
 }

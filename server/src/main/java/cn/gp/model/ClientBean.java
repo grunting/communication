@@ -1,12 +1,14 @@
 package cn.gp.model;
 
 import cn.gp.service.IsAlive;
+import cn.gp.util.IndexTest;
 import io.netty.channel.Channel;
 import io.netty.util.internal.ConcurrentSet;
 
 import java.security.PublicKey;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -14,7 +16,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * 客户端bean
  */
-public class ClientBean<K> implements IsAlive<K> {
+public class ClientBean implements IsAlive {
 
     // 客户端名
     private String name;
@@ -35,7 +37,7 @@ public class ClientBean<K> implements IsAlive<K> {
     private Map<String,String> properties = new HashMap<String, String>();
 
     // 索引根
-    private ConcurrentMap<String,ConcurrentMap<String,ConcurrentSet<K>>> index;
+    private IndexTest<ClientBean> index;
 
     public Channel getChannel() {
         return channel;
@@ -74,8 +76,9 @@ public class ClientBean<K> implements IsAlive<K> {
 
         for (String key : properties.keySet()) {
             String value = properties.get(key);
-            ConcurrentSet<K> nodes = index.get(key).get(value);
-            for (K node : nodes) {
+
+            Set<ClientBean> nodes = index.getNode(key,value);
+            for (ClientBean node : nodes) {
                 if (node.equals(this)) {
                     nodes.remove(node);
                 }
@@ -95,10 +98,9 @@ public class ClientBean<K> implements IsAlive<K> {
      * 设置属性
      * @param key 键
      * @param value 值
-     * @param index 索引地址
      */
-    public void setProperties(String key, String value, ConcurrentMap<String,ConcurrentMap<String,ConcurrentSet<K>>> index) {
-        this.index = index;
+    public void setProperties(String key, String value) {
+        this.index = Basic.getIndex();
         properties.put(key,value);
     }
 }

@@ -1,12 +1,12 @@
 package cn.gp.handler;
 
 import cn.gp.model.Request;
+import cn.gp.service.GroupServer;
 import cn.gp.service.impl.FileStreamServerImpl;
+import cn.gp.service.impl.GroupServerImpl;
 import cn.gp.service.impl.RegisterServerImpl;
-import cn.gp.service.impl.SendMessageServerImpl;
 import cn.gp.service.FileStreamServer;
 import cn.gp.service.RegisterServer;
-import cn.gp.service.SendMessageServer;
 import io.netty.channel.Channel;
 
 import java.lang.reflect.Constructor;
@@ -29,8 +29,8 @@ public class Service {
 
         // 注册的服务
         servers.put(RegisterServer.class.getName(), RegisterServerImpl.class);
-        servers.put(SendMessageServer.class.getName(), SendMessageServerImpl.class);
         servers.put(FileStreamServer.class.getName(), FileStreamServerImpl.class);
+        servers.put(GroupServer.class.getName(), GroupServerImpl.class);
 
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override

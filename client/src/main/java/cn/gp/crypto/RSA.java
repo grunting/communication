@@ -72,7 +72,8 @@ public class RSA {
      * @return 密文
      * @throws Exception
      */
-    public static byte[] encrypt(byte[] content, PublicKey publicKey) throws Exception{
+    public static byte[] encrypt(byte[] content, PublicKey publicKey) throws Exception {
+
         Cipher cipher=Cipher.getInstance("RSA");//java默认"RSA"="RSA/ECB/PKCS1Padding"
         cipher.init(Cipher.ENCRYPT_MODE, publicKey);
         return cipher.doFinal(content);
@@ -85,7 +86,7 @@ public class RSA {
      * @return 明文
      * @throws Exception
      */
-    public static byte[] decrypt(byte[] content, PrivateKey privateKey) throws Exception{
+    public static byte[] decrypt(byte[] content, PrivateKey privateKey) throws Exception {
         Cipher cipher=Cipher.getInstance("RSA");
         cipher.init(Cipher.DECRYPT_MODE, privateKey);
         return cipher.doFinal(content);
@@ -98,7 +99,7 @@ public class RSA {
      * @return 密文
      * @throws Exception
      */
-    public static byte[] encrypt(byte[] content, PrivateKey privateKey) throws Exception{
+    public static byte[] encrypt(byte[] content, PrivateKey privateKey) throws Exception {
         Cipher cipher = Cipher.getInstance("RSA");
         cipher.init(Cipher.ENCRYPT_MODE,privateKey);
         return cipher.doFinal(content);
@@ -111,33 +112,9 @@ public class RSA {
      * @return 明文
      * @throws Exception
      */
-    public static byte[] decrypt(byte[] content, PublicKey publicKey) throws Exception{
+    public static byte[] decrypt(byte[] content, PublicKey publicKey) throws Exception {
         Cipher cipher=Cipher.getInstance("RSA");
         cipher.init(Cipher.DECRYPT_MODE, publicKey);
         return cipher.doFinal(content);
-    }
-
-    /**
-     * 测试
-     * @param args 空
-     * @throws Exception
-     */
-    public static void main(String[] args) throws Exception {
-        KeyPair keyPair = RSA.genKeyPair(1024);
-
-        PublicKey publicKey = keyPair.getPublic();
-
-        byte[] key = AES.getKey();
-        System.out.println(Arrays.toString(key));
-
-
-        byte[] crypto = RSA.encrypt(key,publicKey);
-        System.out.println(new String(crypto));
-
-        String test = Base64.encodeBase64String(crypto);
-        System.out.println(test);
-
-        byte[] real = RSA.decrypt(Base64.decodeBase64(test),keyPair.getPrivate());
-        System.out.println(Arrays.toString(real));
     }
 }

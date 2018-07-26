@@ -7,15 +7,26 @@ public interface FileStream {
 
     /**
      * 发送文件
-     * @param name 接收人
-     * @param path 文件地址
+     * @param groupId 分组id
+     * @param path 地址
+     * @param atom 地址(递归用)
      */
-    void sendFile(String name, String path);
+    void sendFile(String groupId, String path,String atom);
 
     /**
      * 接收文件
-     * @param name 文件名
-     * @param data 数据流
+     * @param groupId 分组id
+     * @param sparker 发送者
+     * @param fileName 文件名
+     * @param index 当前发送第几块
+     * @param data 数据
      */
-    void recoveFile(String name, byte[] data);
+    boolean recoveFile(String groupId, String sparker, String fileName, int index, byte[] data);
+
+    /**
+     * 创建文件夹
+     * @param path 相对路径
+     * @return 返回执行结果
+     */
+    boolean createDir(String path);
 }

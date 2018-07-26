@@ -6,6 +6,8 @@ import cn.gp.model.Basic;
 import cn.gp.model.Friend;
 import cn.gp.service.RegisterServer;
 import cn.gp.service.Report;
+import cn.gp.util.Configure;
+import cn.gp.util.Constant;
 import com.google.protobuf.ByteString;
 
 import java.security.PublicKey;
@@ -39,9 +41,13 @@ public class ReportImpl implements Report {
      */
     public void findClient(String name,String channelId,PublicKey publicKey) {
 
+        if (Configure.getConfigBoolean(Constant.CLIENT_SECURITY_STRICTVAILDATION)) {
+
+        }
+
         Friend friend = new Friend(channelId,name,publicKey);
 
-        Basic.getIndexTest().setIndex("name",name,friend);
+        Basic.getIndexTest().setIndex("names",name,friend);
         Basic.getIndexTest().setIndex("channelid",channelId,friend);
 
         System.out.println();
@@ -61,7 +67,9 @@ public class ReportImpl implements Report {
 
         boolean b = registerServer.addClient(Basic.getName(),Basic.getKeyPair().getPublic(), crypto);
 
-        System.out.println();
-        System.out.println("上报的结果" + b);
+        if(!b) {
+            System.out.println("服务器拒绝了本节点的注册");
+            System.exit(2);
+        }
     }
 }

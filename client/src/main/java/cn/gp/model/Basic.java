@@ -5,6 +5,8 @@ import cn.gp.util.IndexTest;
 import io.netty.channel.Channel;
 
 import java.security.KeyPair;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * 基本信息集合
@@ -22,6 +24,9 @@ public class Basic {
 
     // 朋友
     private static IndexTest<Friend> indexTest = new IndexTest<Friend>();
+
+    // 分组
+    private static ConcurrentMap<String,byte[]> groups = new ConcurrentHashMap<String, byte[]>();
 
     static {
         try {
@@ -57,4 +62,7 @@ public class Basic {
         return indexTest;
     }
 
+    public static ConcurrentMap<String, byte[]> getGroups() {
+        return groups;
+    }
 }

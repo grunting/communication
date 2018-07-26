@@ -80,7 +80,7 @@ public class IndexTest<K extends IsAlive> {
         nodes.add(node);
         values.put(value,nodes);
 
-        node.setProperties(key,value,index);
+        node.setProperties(key,value);
         index.put(key,values);
     }
 

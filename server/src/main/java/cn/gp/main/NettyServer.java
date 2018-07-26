@@ -108,6 +108,7 @@ public class NettyServer {
             workerGroup.shutdownGracefully();
             bossGroup.shutdownGracefully();
             System.out.println("[ChatServer 关闭了]");
+            System.exit(1);
         }
     }
 

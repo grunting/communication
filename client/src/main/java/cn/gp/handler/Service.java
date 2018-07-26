@@ -2,12 +2,10 @@ package cn.gp.handler;
 
 import cn.gp.model.Basic;
 import cn.gp.model.Request;
+import cn.gp.service.*;
 import cn.gp.service.impl.FileStreamImpl;
+import cn.gp.service.impl.GroupImpl;
 import cn.gp.service.impl.ReportImpl;
-import cn.gp.service.impl.SendMessageImpl;
-import cn.gp.service.FileStream;
-import cn.gp.service.Report;
-import cn.gp.service.SendMessage;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
@@ -29,8 +27,8 @@ public class Service {
 
         // 注册的服务
         servers.put(Report.class.getName(), ReportImpl.class);
-        servers.put(SendMessage.class.getName(), SendMessageImpl.class);
         servers.put(FileStream.class.getName(), FileStreamImpl.class);
+        servers.put(Group.class.getName(), GroupImpl.class);
 
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
