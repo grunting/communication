@@ -25,9 +25,7 @@ import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.TrustManagerFactory;
-import java.io.FileInputStream;
 import java.security.KeyManagementException;
-import java.security.KeyStore;
 
 
 /**
@@ -72,14 +70,14 @@ public class NettyClient {
                     Configure.getConfigInteger(
                             Constant.SERVER_PORT)).sync();
             Channel channel = f.channel();
+
             Basic.setChannel(channel);
             ScannerHandler.run();
+
             f.channel().closeFuture().sync();
 
         } catch (Exception e) {
             e.printStackTrace();
-
-        } finally {
             group.shutdownGracefully();
 
             System.out.println();
@@ -98,9 +96,6 @@ public class NettyClient {
 
         KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
         kmf.init(JksTool.getKeyStore(),Configure.getConfigString(Constant.CLIENT_JKS_KEYPASS).toCharArray());
-
-        SSLContext clientContext = SSLContext.getInstance( "TLS");
-        clientContext.init(kmf.getKeyManagers(), trustManagerFactory.getTrustManagers(), null);
 
         SSLContext sslContext = SSLContext.getInstance("TLS");
         try {

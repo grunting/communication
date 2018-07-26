@@ -1,6 +1,5 @@
 package cn.gp.main;
 
-import cn.gp.crypto.JksTool;
 import cn.gp.model.Basic;
 
 /**
@@ -18,9 +17,7 @@ public class Client {
     public static void main(String[] args) {
 
         System.out.println("Client start");
-        System.out.println("My name is " + JksTool.getAlias());
-
-        Basic.setName(JksTool.getAlias());
+        System.out.println("My name is " + Basic.getName());
 
         NettyClient.run();
     }

@@ -6,12 +6,8 @@ import cn.gp.model.Basic;
 import cn.gp.model.Friend;
 import cn.gp.service.RegisterServer;
 import cn.gp.service.Report;
-import cn.gp.util.Configure;
-import cn.gp.util.Constant;
-import com.google.protobuf.ByteString;
 
 import java.security.PublicKey;
-import java.util.Arrays;
 
 /**
  * 实现上报功能
@@ -40,10 +36,6 @@ public class ReportImpl implements Report {
      * @param publicKey 公钥
      */
     public void findClient(String name,String channelId,PublicKey publicKey) {
-
-        if (Configure.getConfigBoolean(Constant.CLIENT_SECURITY_STRICTVAILDATION)) {
-
-        }
 
         Friend friend = new Friend(channelId,name,publicKey);
 

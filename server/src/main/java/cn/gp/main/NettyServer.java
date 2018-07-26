@@ -2,9 +2,6 @@ package cn.gp.main;
 
 import cn.gp.crypto.JksTool;
 import cn.gp.handler.ChannelHandler;
-import cn.gp.handler.Remote;
-import cn.gp.handler.Service;
-import cn.gp.model.Basic;
 import cn.gp.proto.Data;
 import cn.gp.util.Configure;
 import cn.gp.util.Constant;
@@ -27,9 +24,7 @@ import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.TrustManagerFactory;
-import java.io.FileInputStream;
 import java.security.KeyManagementException;
-import java.security.KeyStore;
 import java.util.concurrent.TimeUnit;
 
 /**

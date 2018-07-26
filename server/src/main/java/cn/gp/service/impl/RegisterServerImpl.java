@@ -9,7 +9,6 @@ import cn.gp.service.RegisterServer;
 import cn.gp.service.Report;
 import cn.gp.util.Configure;
 import cn.gp.util.Constant;
-import com.google.protobuf.ByteString;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 

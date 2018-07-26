@@ -9,7 +9,7 @@ public interface FileStream {
      * 发送文件
      * @param groupId 分组id
      * @param path 地址
-     * @param atom 地址(递归用)
+     * @param atom 根地址
      */
     void sendFile(String groupId, String path,String atom);
 

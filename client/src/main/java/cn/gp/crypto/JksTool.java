@@ -1,6 +1,5 @@
 package cn.gp.crypto;
 
-import cn.gp.model.Basic;
 import cn.gp.util.Configure;
 import cn.gp.util.Constant;
 
@@ -18,9 +17,16 @@ import java.util.Map;
  */
 public class JksTool {
 
+    // 签名文件实例
     private static KeyStore keyStore;
+
+    // 含有秘钥的别称
     private static String alias;
+
+    // 本机秘钥对
     private static KeyPair keyPair;
+
+    // 可信列表
     private static Map<String,PublicKey> trustMap;
 
 

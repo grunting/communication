@@ -1,14 +1,10 @@
 package cn.gp.handler;
 
-import cn.gp.crypto.SHA;
-import cn.gp.model.Basic;
 import cn.gp.model.Request;
 import cn.gp.proto.Data;
 import cn.gp.util.ByteAndObject;
 import com.google.protobuf.ByteString;
 import io.netty.channel.*;
-import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.GenericFutureListener;
 
 /**
  * 客户端与远程的处理部分
@@ -23,9 +19,6 @@ public class ChannelHandler extends SimpleChannelInboundHandler<Data.Message> {
      */
     @Override
     protected void messageReceived(ChannelHandlerContext ctx, Data.Message msg) throws Exception {
-
-//        byte[] real = Basic.getAes().decode(msg.getBody().toByteArray());
-//        Request request = ByteAndObject.deserialize(real);
 
         Request request = ByteAndObject.deserialize(msg.getBody().toByteArray());
 
@@ -47,9 +40,6 @@ public class ChannelHandler extends SimpleChannelInboundHandler<Data.Message> {
     public static void sendFinal(Request request,Channel channel) {
 
         Data.Message.Builder builder1 = Data.Message.newBuilder();
-
-//        byte[] crypto = Basic.getAes().encode(ByteAndObject.serialize(request));
-//        builder1.setBody(ByteString.copyFrom(crypto));
 
         builder1.setBody(ByteString.copyFrom(ByteAndObject.serialize(request)));
 
@@ -74,26 +64,4 @@ public class ChannelHandler extends SimpleChannelInboundHandler<Data.Message> {
 //        });
         return channel.writeAndFlush(builder1.build());
     }
-
-
-    /**
-     * 获取请求体签名
-     * @param request 请求体
-     * @return 签名
-     */
-//    private String getSha(Request request) {
-//
-//        byte[] shabefore1 = ByteAndObject.serialize(request);
-//        byte[] shabefore2 = Basic.getServerKey().getBytes();
-//
-//        byte[] shaafter = new byte[3096];
-//        for(int i = 0;i < 3000;i ++) {
-//            shaafter[i] = shabefore1[i];
-//        }
-//        for(int i = 3000;i < shaafter.length;i ++) {
-//            shaafter[i] = shabefore2[i - 3000];
-//        }
-//
-//        return SHA.encodeSHA(shaafter);
-//    }
 }

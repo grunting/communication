@@ -5,7 +5,6 @@ import javax.crypto.Cipher;
 import java.security.*;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
-import java.util.Arrays;
 
 import com.google.protobuf.ByteString;
 import org.apache.commons.codec.binary.Base64;

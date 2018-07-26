@@ -2,13 +2,11 @@ package cn.gp.model;
 
 import cn.gp.service.IsAlive;
 import cn.gp.util.IndexTest;
-import io.netty.util.internal.ConcurrentSet;
 
 import java.security.PublicKey;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**

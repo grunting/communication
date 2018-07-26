@@ -1,10 +1,13 @@
 package cn.gp.model;
 
+import cn.gp.crypto.AES;
 import cn.gp.crypto.JksTool;
 import cn.gp.util.IndexTest;
 import io.netty.channel.Channel;
 
 import java.security.KeyPair;
+import java.security.PublicKey;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -22,15 +25,20 @@ public class Basic {
     // 远端通道
     private static Channel channel;
 
+    // 可信列表
+    private static Map<String,PublicKey> trustMap;
+
     // 朋友
     private static IndexTest<Friend> indexTest = new IndexTest<Friend>();
 
     // 分组
-    private static ConcurrentMap<String,byte[]> groups = new ConcurrentHashMap<String, byte[]>();
+    private static ConcurrentMap<String, AES> groups = new ConcurrentHashMap<String, AES>();
 
     static {
         try {
             keyPair = JksTool.getKeyPair();
+            name = JksTool.getAlias();
+            trustMap = JksTool.getTrustMap();
         } catch(Exception e) {
             e.printStackTrace();
             System.out.println("无法生成自身秘钥");
@@ -42,16 +50,14 @@ public class Basic {
         return channel;
     }
 
-    public static void setChannel(Channel channel) {
-        Basic.channel = channel;
+    public synchronized static void setChannel(Channel channel) {
+        if (Basic.channel == null) {
+            Basic.channel = channel;
+        }
     }
 
     public static String getName() {
         return name;
-    }
-
-    public static void setName(String name) {
-        Basic.name = name;
     }
 
     public static KeyPair getKeyPair() {
@@ -62,7 +68,7 @@ public class Basic {
         return indexTest;
     }
 
-    public static ConcurrentMap<String, byte[]> getGroups() {
+    public static ConcurrentMap<String, AES> getGroups() {
         return groups;
     }
 }

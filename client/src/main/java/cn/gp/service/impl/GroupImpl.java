@@ -19,10 +19,14 @@ public class GroupImpl implements Group {
         return Basic.getGroups().keySet();
     }
 
+    /**
+     * 查看分组内用户
+     * @param groupId 分组id
+     * @return 返回用户列表
+     */
     public Set<String> showGroupUsers(String groupId) {
 
         GroupServer groupServer = Remote.getRemoteProxyObj(GroupServer.class);
-
         return groupServer.showGroupUsers(groupId);
     }
 
@@ -39,7 +43,6 @@ public class GroupImpl implements Group {
         byte[] key = AES.getKey();
 
         Map<String,byte[]> map = new HashMap<String,byte[]>();
-
         for (String name : names) {
             Set<Friend> set = Basic.getIndexTest().getNode("names",name);
             for (Friend friend : set) {
@@ -49,7 +52,6 @@ public class GroupImpl implements Group {
         }
 
         String groupId = groupServer.createGroup(map);
-
         if (groupId == null) {
             return false;
         } else {
@@ -57,13 +59,13 @@ public class GroupImpl implements Group {
             System.out.println("创建分组:" + groupId);
             System.out.print("order:");
 
-            Basic.getGroups().put(groupId,key);
+            Basic.getGroups().put(groupId,new AES(key));
             return true;
         }
     }
 
     /**
-     * 回应其他客户端的分组要求
+     * 回应其他客户端的分组要求(可以加入严格判断,不在可信列表则拒绝请求)
      * @param groupId 分组id
      * @param crypto 秘钥
      * @return 返回接收成功与否
@@ -73,7 +75,7 @@ public class GroupImpl implements Group {
         try {
             byte[] real = RSA.decrypt(crypto,Basic.getKeyPair().getPrivate());
 
-            Basic.getGroups().put(groupId,real);
+            Basic.getGroups().put(groupId,new AES(real));
             System.out.println();
             System.out.println("加入分组:" + groupId);
             System.out.print("order:");
@@ -84,10 +86,16 @@ public class GroupImpl implements Group {
         }
     }
 
+    /**
+     * 发送分组消息
+     * @param groupId 分组id
+     * @param message 信息
+     * @return 返回发送结果(考虑改成发送成功数)
+     */
     public boolean sendMessage(String groupId, byte[] message) {
         GroupServer groupServer = Remote.getRemoteProxyObj(GroupServer.class);
 
-        AES aes = new AES(Basic.getGroups().get(groupId));
+        AES aes = Basic.getGroups().get(groupId);
         byte[] crypto = aes.encode(message);
 
         return groupServer.sendMessage(groupId,crypto);
@@ -102,7 +110,7 @@ public class GroupImpl implements Group {
      */
     public boolean recoveMessage(String groupId, String sparker, byte[] message) {
 
-        AES aes = new AES(Basic.getGroups().get(groupId));
+        AES aes = Basic.getGroups().get(groupId);
         byte[] realMessage = aes.decode(message);
 
         System.out.println();

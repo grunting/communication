@@ -1,6 +1,5 @@
 package cn.gp.handler;
 
-import cn.gp.model.Basic;
 import cn.gp.model.Request;
 import cn.gp.proto.Data;
 import cn.gp.service.impl.RegisterServerImpl;
@@ -24,9 +23,6 @@ public class ChannelHandler extends SimpleChannelInboundHandler<Data.Message> {
     @Override
     protected void messageReceived(ChannelHandlerContext ctx, Data.Message msg) throws Exception {
 
-//        byte[] real = Basic.getAes().decode(msg.getBody().toByteArray());
-//        Request request = ByteAndObject.deserialize(real);
-
         Request request = ByteAndObject.deserialize(msg.getBody().toByteArray());
 
         if(request.getServiceName() == null) {
@@ -44,9 +40,6 @@ public class ChannelHandler extends SimpleChannelInboundHandler<Data.Message> {
     public static void sendFinal(Request request,Channel channel) {
 
         Data.Message.Builder builder1 = Data.Message.newBuilder();
-//        byte[] crypto = Basic.getAes().encode(ByteAndObject.serialize(request));
-//        builder1.setBody(ByteString.copyFrom(crypto));
-
         builder1.setBody(ByteString.copyFrom(ByteAndObject.serialize(request)));
 
         channel.writeAndFlush(builder1.build());

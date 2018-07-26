@@ -26,14 +26,18 @@ public class FileStreamImpl implements FileStream {
      * 发送文件
      * @param groupId 分组id
      * @param path 地址
+     * @param atom 根地址
      */
     public void sendFile(String groupId, String path,String atom) {
 
         FileStreamServer fileStreamServer = Remote.getRemoteProxyObj(FileStreamServer.class);
-
         File file = new File(path);
+
+        // 递归发送文件(或者改成全遍历后统一创建文件夹,之后传文件?这样比较好做断点续传和组内p2p补全文件——服务器不记录文件本身)
         if(file.isDirectory()) {
             String[] fileNames = file.list();
+
+            // 远程创建文件夹
             boolean b = fileStreamServer.createDir(groupId,file.getAbsolutePath().replace(atom + File.separator,""));
             if (b) {
                 for(String fileName : fileNames) {
@@ -41,16 +45,20 @@ public class FileStreamImpl implements FileStream {
                 }
             }
         } else if(file.isFile()) {
+
+            // 真实传递文件(分批传送)
             try {
                 FileInputStream fileInputStream = new FileInputStream(file);
 
+                // 分批序号与数据本身
                 int index = 0;
                 byte[] data = new byte[1024 * 2];
 
                 // 2k发送一次
                 while(fileInputStream.read(data) != -1) {
 
-                    AES aes = new AES(Basic.getGroups().get(groupId));
+                    // 加密
+                    AES aes = Basic.getGroups().get(groupId);
                     byte[] crypto = aes.encode(data);
 
                     // 发送不成功则重复发,重试5次,超过则认为整体发送失败
@@ -68,10 +76,11 @@ public class FileStreamImpl implements FileStream {
                     index ++;
                 }
 
+                // 分批序号-1代表正常完成
                 fileInputStream.close();
                 fileStreamServer.send(groupId,file.getName(),data,-1);
 
-                // 告诉另一端发送结果
+                // 告诉自己发送结果
                 if (index != -1) {
                     System.out.println("finshed:" + file.getName());
                 } else {
@@ -85,12 +94,11 @@ public class FileStreamImpl implements FileStream {
     }
 
     /**
-     * 创建文件夹
+     * 创建文件夹(响应远程创建请求)
      * @param path 相对路径
      * @return 返回创建结果
      */
     public boolean createDir(String path) {
-        System.out.println("createPath:" + path);
         try {
             File file = new File(targetDir + File.separator + path);
             int retry = 0;
@@ -107,7 +115,7 @@ public class FileStreamImpl implements FileStream {
     }
 
     /**
-     * 接收文件
+     * 接收文件(要不要做个交互选项?)
      * @param groupId 分组id
      * @param sparker 发送者
      * @param index 当前发送第几块
@@ -118,8 +126,12 @@ public class FileStreamImpl implements FileStream {
         return writeFile(groupId,sparker,fileName,index,data);
     }
 
+    // 记录整个节点的数据传输句柄
     private static Map<String,FileInfo> files = new HashMap<String, FileInfo>();
 
+    /**
+     * 内部类,为了实现数据传输句柄相对数据
+     */
     private static class FileInfo {
         FileOutputStream fileOutputStream;
         int index;
@@ -136,10 +148,14 @@ public class FileStreamImpl implements FileStream {
      */
     public synchronized static boolean writeFile(String groupId, String sparker,String fileName, int index, byte[] data) {
 
+        // 生层id
         String id = groupId + ":" + sparker + ":sendFile:" + fileName;
 
+        // 如果文件句柄存在
         if (files.containsKey(id)) {
             try {
+
+                // 传输完成,忽略数据本身(可以改成最后一次传递-1,减少调用次数)
                 if (index == -1) {
                     FileInfo fileInfo = files.remove(id);
                     FileOutputStream fileOutputStream = fileInfo.fileOutputStream;
@@ -147,13 +163,14 @@ public class FileStreamImpl implements FileStream {
                     fileOutputStream.close();
                 } else {
 
+                    // 获取文件句柄相对数据
                     FileInfo fileInfo = files.get(id);
 
                     // 支持重发,但是不支持乱序发
                     if (fileInfo.index + 1 == index) {
                         FileOutputStream fileOutputStream = fileInfo.fileOutputStream;
 
-                        AES aes = new AES(Basic.getGroups().get(groupId));
+                        AES aes = Basic.getGroups().get(groupId);
                         byte[] real = aes.decode(data);
 
                         fileOutputStream.write(real);
@@ -168,13 +185,17 @@ public class FileStreamImpl implements FileStream {
                 files.remove(id);
                 return false;
             }
+
+        // 文件句柄不存在
         } else {
             try {
+
+                // 这种时候只接受第一次发送
                 if (index == 0) {
 
                     FileOutputStream fileOutputStream = new FileOutputStream(targetDir + File.separator + fileName);
 
-                    AES aes = new AES(Basic.getGroups().get(groupId));
+                    AES aes = Basic.getGroups().get(groupId);
                     byte[] real = aes.decode(data);
 
                     fileOutputStream.write(real);

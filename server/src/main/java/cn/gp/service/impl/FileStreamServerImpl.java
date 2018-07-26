@@ -5,7 +5,6 @@ import cn.gp.model.Basic;
 import cn.gp.model.ClientBean;
 import cn.gp.service.FileStream;
 import cn.gp.service.FileStreamServer;
-import cn.gp.service.Group;
 import io.netty.channel.Channel;
 
 import java.util.Set;
@@ -52,7 +51,7 @@ public class FileStreamServerImpl implements FileStreamServer {
      * 创建文件夹
      * @param groupId 分组id
      * @param path 相对路径
-     * @return
+     * @return 返回成功与否
      */
     public boolean createDir(String groupId,String path) {
 

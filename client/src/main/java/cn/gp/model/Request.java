@@ -5,20 +5,23 @@ package cn.gp.model;
  */
 public class Request {
 
-    // 访问的id
+    // 访问的id(方便回传时获取返回值)
     private Integer id;
 
+    // 服务名
     private String serviceName;
 
+    // 函数名
     private String methodName;
 
+    // 参数类型列表
     private Class<?>[] parameterTypes;
 
+    // 参数列表
     private Object[] arguments;
 
+    // 返回值
     private Object result;
-
-    private String random;
 
     public Integer getId() {
         return id;
@@ -26,14 +29,6 @@ public class Request {
 
     public void setId(Integer id) {
         this.id = id;
-    }
-
-    public String getRandom() {
-        return random;
-    }
-
-    public void setRandom(String random) {
-        this.random = random;
     }
 
     public String getServiceName() {

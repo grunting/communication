@@ -54,6 +54,8 @@ public class ScannerHandler {
             String[] split = orderOrMessage.split(":");
 
             Group group = new GroupImpl();
+            FileStream fileStream = new FileStreamImpl();
+
             if (split[0].equals("create")) {
                 List<String> list = Arrays.asList(split[1].split(","));
 
@@ -61,7 +63,6 @@ public class ScannerHandler {
             } else if (split[0].equals("showFriends")){
                 System.out.println(group.showGroupUsers(split[1]));
             } else if (split[0].equals("sendFiles")){
-                FileStream fileStream = new FileStreamImpl();
                 String[] ss = split[1].split(",");
                 fileStream.sendFile(ss[0],ss[1],ss[1]);
             } else {

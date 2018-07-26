@@ -1,6 +1,6 @@
 package cn.gp.main;
 
-import cn.gp.crypto.JksTool;
+import cn.gp.model.Basic;
 
 /**
  * 服务器
@@ -16,7 +16,7 @@ public class Server {
 
         // 启动准备
         System.out.println("Server start");
-        System.out.println("Server name is " + JksTool.getAlias());
+        System.out.println("Server name is " + Basic.getName());
 
         NettyServer.run();
 

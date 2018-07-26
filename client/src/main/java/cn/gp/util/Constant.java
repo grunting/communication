@@ -9,8 +9,6 @@ public enum Constant {
     CLIENT_JKS_KEYPASS,                 // 客户端jks文件访问密码
     CLIENT_JKS_STOREPASS,               // 客户端jks文件秘钥访问密码
 
-    CLIENT_SECURITY_STRICTVAILDATION,   // 客户端是否是严格验证同服务器的其他客户端
-
     CLIENT_TARGET_DIR,                  // 客户端临时文件夹
 
     CLIENT_NETTY_WRITELIMIT,            // 客户端netty写入限制
@@ -38,9 +36,6 @@ public enum Constant {
                 return "client.netty.writelimit";
             case CLIENT_NETTY_READLIMIT:
                 return "client.netty.readlimit";
-
-            case CLIENT_SECURITY_STRICTVAILDATION:
-                return "client.security.strictvaildation";
 
             case CLIENT_TARGET_DIR:
                 return "client.target.dir";
