@@ -1,6 +1,6 @@
 package cn.gp.model;
 
-import cn.gp.service.IsAlive;
+import cn.gp.base.IsAlive;
 import cn.gp.util.IndexTest;
 import io.netty.channel.Channel;
 

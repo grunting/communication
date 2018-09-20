@@ -1,7 +1,6 @@
 package cn.gp.model;
 
 import cn.gp.crypto.AES;
-import cn.gp.crypto.JksTool;
 import cn.gp.util.IndexTest;
 import io.netty.channel.Channel;
 
@@ -33,6 +32,12 @@ public class Basic {
 
     // 分组
     private static ConcurrentMap<String, AES> groups = new ConcurrentHashMap<String, AES>();
+
+    // 构建单人传输的中间信息
+    private static ConcurrentMap<String,Integer> sendMessageBefore = new ConcurrentHashMap<String, Integer>();
+
+    // 测试单人传输
+    private static ConcurrentMap<String, AES> sendMessage = new ConcurrentHashMap<String, AES>();
 
     static {
         try {
@@ -70,5 +75,19 @@ public class Basic {
 
     public static ConcurrentMap<String, AES> getGroups() {
         return groups;
+    }
+
+
+    public static ConcurrentMap<String, AES> getSendMessage() {
+        return sendMessage;
+    }
+
+    public static ConcurrentMap<String,Integer> getSendMessageBefore() {
+        return sendMessageBefore;
+    }
+
+
+    public static Map<String, PublicKey> getTrustMap() {
+        return trustMap;
     }
 }

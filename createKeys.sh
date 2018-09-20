@@ -1,22 +1,35 @@
 #!/usr/bin/env bash
 
 # 生成netty服务端证书
-keytool -genkey -alias server -keysize 2048 -validity 365 -keyalg RSA -dname "CN=localhost" -keypass sNetty -storepass sNetty -keystore sChat.jks
+keytool -genkey -alias server -keysize 2048 -validity 365 -keyalg RSA -dname "CN=localhost" -keypass server -storepass server -keystore server.jks
 
 # 生成netty客户端证书
-keytool -genkey -alias gaopeng -keysize 2048 -validity 365 -keyalg RSA -dname "CN=localhost" -keypass cNetty -storepass cNetty -keystore cChat1.jks
+keytool -genkey -alias client1 -keysize 2048 -validity 365 -keyalg RSA -dname "CN=localhost" -keypass client1 -storepass client1 -keystore client1.jks
+keytool -genkey -alias client2 -keysize 2048 -validity 365 -keyalg RSA -dname "CN=localhost" -keypass client2 -storepass client2 -keystore client2.jks
+keytool -genkey -alias client3 -keysize 2048 -validity 365 -keyalg RSA -dname "CN=localhost" -keypass client3 -storepass client3 -keystore client3.jks
 
-# 生成服务端自签名
-keytool -export -alias securechat -keystore sChat.jks -storepass sNetty -file sChat.cer
-
-# 生成客户端自签名
-keytool -export -alias smcc -keystore cChat.jks -storepass cNetty -file cChat.cer
+# 生成自签名
+keytool -export -alias server -keystore server.jks -storepass server -file server.cer
+keytool -export -alias client1 -keystore client1.jks -storepass client1 -file client1.cer
+keytool -export -alias client2 -keystore client2.jks -storepass client2 -file client2.cer
+keytool -export -alias client3 -keystore client3.jks -storepass client3 -file client3.cer
 
 # 将服务端证书导入到客户端证书仓库中
-keytool -import -trustcacerts -alias securechat -file sChat.cer -storepass cNetty -keystore cChat.jks
+keytool -import -trustcacerts -alias server -file server.cer -storepass client1 -keystore client1.jks
+keytool -import -trustcacerts -alias server -file server.cer -storepass client2 -keystore client2.jks
+keytool -import -trustcacerts -alias server -file server.cer -storepass client3 -keystore client3.jks
 
-# 将客户端证书导入到服务端证书仓库中
-keytool -import -trustcacerts -alias smcc -file cChat.cer -storepass sNetty -keystore sChat.jks
+keytool -import -trustcacerts -alias client1 -file client1.cer -storepass server -keystore server.jks
+keytool -import -trustcacerts -alias client1 -file client1.cer -storepass client2 -keystore client2.jks
+keytool -import -trustcacerts -alias client1 -file client1.cer -storepass client3 -keystore client3.jks
+
+keytool -import -trustcacerts -alias client2 -file client2.cer -storepass server -keystore server.jks
+keytool -import -trustcacerts -alias client2 -file client2.cer -storepass client1 -keystore client1.jks
+keytool -import -trustcacerts -alias client2 -file client2.cer -storepass client3 -keystore client3.jks
+
+keytool -import -trustcacerts -alias client3 -file client3.cer -storepass server -keystore server.jks
+keytool -import -trustcacerts -alias client3 -file client3.cer -storepass client1 -keystore client1.jks
+keytool -import -trustcacerts -alias client3 -file client3.cer -storepass client2 -keystore client2.jks
 
 # 查看证书
 keytool -list -rfc -keystore sChat.jks

@@ -1,11 +1,11 @@
 package cn.gp.handler;
 
+import cn.gp.client.Report;
+import cn.gp.client.SingleGroup;
 import cn.gp.model.Basic;
-import cn.gp.model.Request;
 import cn.gp.service.*;
-import cn.gp.service.impl.FileStreamImpl;
-import cn.gp.service.impl.GroupImpl;
 import cn.gp.service.impl.ReportImpl;
+import cn.gp.service.impl.SingleGroupImpl;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
@@ -27,6 +27,7 @@ public class Service {
 
         // 注册的服务
         servers.put(Report.class.getName(), ReportImpl.class);
+        servers.put(SingleGroup.class.getName(), SingleGroupImpl.class);
         servers.put(FileStream.class.getName(), FileStreamImpl.class);
         servers.put(Group.class.getName(), GroupImpl.class);
 

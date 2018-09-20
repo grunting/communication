@@ -1,14 +1,12 @@
 package cn.gp.handler;
 
-import cn.gp.service.FileStream;
-import cn.gp.service.Group;
-import cn.gp.service.impl.FileStreamImpl;
-import cn.gp.service.impl.GroupImpl;
+import cn.gp.model.Basic;
+import cn.gp.model.Friend;
 import cn.gp.service.impl.ReportImpl;
+import cn.gp.service.impl.SingleGroupImpl;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.Scanner;
+import java.util.Set;
 
 /**
  * 简单的命令行响应部分
@@ -53,20 +51,24 @@ public class ScannerHandler {
 
             String[] split = orderOrMessage.split(":");
 
-            Group group = new GroupImpl();
+            if (split.length == 1) {
+                Set<Friend> set = Basic.getIndexTest().getNode("names");
+                for (Friend friend : set) {
+                    System.out.println(friend.getName());
+                }
+            }
+
+            if(split.length != 2) {
+                continue;
+            }
+
             FileStream fileStream = new FileStreamImpl();
 
-            if (split[0].equals("create")) {
-                List<String> list = Arrays.asList(split[1].split(","));
-
-                group.createGroup(list);
-            } else if (split[0].equals("showFriends")){
-                System.out.println(group.showGroupUsers(split[1]));
-            } else if (split[0].equals("sendFiles")){
+            if (split[0].equals("sendFiles")){
                 String[] ss = split[1].split(",");
                 fileStream.sendFile(ss[0],ss[1],ss[1]);
             } else {
-                System.out.println(group.sendMessage(split[0],split[1].getBytes()));
+                System.out.println("发送结果:" + SingleGroupImpl.sendMessage(split[0],split[1]));
             }
         }
         System.exit(0);

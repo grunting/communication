@@ -10,8 +10,6 @@ public class Client {
     /**
      * 外部参数控制:
      * -Dclient.config=/root/config/client.properties -配置文件
-     *
-     *
      * @param args 参数
      */
     public static void main(String[] args) {

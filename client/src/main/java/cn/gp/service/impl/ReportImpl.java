@@ -4,10 +4,8 @@ import cn.gp.crypto.RSA;
 import cn.gp.handler.Remote;
 import cn.gp.model.Basic;
 import cn.gp.model.Friend;
-import cn.gp.service.RegisterServer;
-import cn.gp.service.Report;
-
-import java.security.PublicKey;
+import cn.gp.server.RegisterServer;
+import cn.gp.client.Report;
 
 /**
  * 实现上报功能
@@ -33,11 +31,15 @@ public class ReportImpl implements Report {
      * 发现客户端公告
      * @param name 名称
      * @param channelId 通信唯一id
-     * @param publicKey 公钥
      */
-    public void findClient(String name,String channelId,PublicKey publicKey) {
+    public void findClient(String name,String channelId) {
 
-        Friend friend = new Friend(channelId,name,publicKey);
+        // 不在可信列表的,拒绝添加到本地(可信的也应该验证一下,暂时忽略)
+        if (!Basic.getTrustMap().containsKey(name)) {
+            return;
+        }
+
+        Friend friend = new Friend(channelId,name,Basic.getTrustMap().get(name));
 
         Basic.getIndexTest().setIndex("names",name,friend);
         Basic.getIndexTest().setIndex("channelid",channelId,friend);
@@ -55,10 +57,10 @@ public class ReportImpl implements Report {
 
         RegisterServer registerServer = Remote.getRemoteProxyObj(RegisterServer.class);
 
+        // 目前签名中只发布自身名字的签名(通道是加密的)
         byte[] crypto = RSA.encrypt(Basic.getName().getBytes(),Basic.getKeyPair().getPrivate());
 
-        boolean b = registerServer.addClient(Basic.getName(),Basic.getKeyPair().getPublic(), crypto);
-
+        boolean b = registerServer.addClient(Basic.getName(),crypto);
         if(!b) {
             System.out.println("服务器拒绝了本节点的注册");
             System.exit(2);

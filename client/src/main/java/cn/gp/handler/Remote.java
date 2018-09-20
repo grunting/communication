@@ -1,7 +1,6 @@
 package cn.gp.handler;
 
 import cn.gp.model.Basic;
-import cn.gp.model.Request;
 import io.netty.util.internal.ConcurrentSet;
 
 import java.lang.reflect.InvocationHandler;

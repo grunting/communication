@@ -1,6 +1,5 @@
 package cn.gp.handler;
 
-import cn.gp.model.Request;
 import io.netty.channel.Channel;
 import io.netty.util.internal.ConcurrentSet;
 
@@ -78,7 +77,7 @@ public class Remote {
                         ChannelHandler.sendFinal(request,channel);
                     }
                 };
-                // 向线程池提交任务
+                // 提交任务
                 pool.submit(thread);
 
                 Object o;
