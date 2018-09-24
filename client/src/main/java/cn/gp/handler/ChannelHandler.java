@@ -1,6 +1,8 @@
 package cn.gp.handler;
 
+import cn.gp.model.Request;
 import cn.gp.proto.Data;
+import cn.gp.util.ByteAndObject;
 import com.google.protobuf.ByteString;
 import io.netty.channel.*;
 
@@ -35,7 +37,7 @@ public class ChannelHandler extends SimpleChannelInboundHandler<Data.Message> {
      * @param request 发送体
      * @param channel 通道
      */
-    public static void sendFinal(Request request,Channel channel) {
+    public static void sendFinal(Request request, Channel channel) {
 
         Data.Message.Builder builder1 = Data.Message.newBuilder();
 

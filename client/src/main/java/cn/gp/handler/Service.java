@@ -1,10 +1,12 @@
 package cn.gp.handler;
 
 import cn.gp.client.Report;
+import cn.gp.client.SingleFileStream;
 import cn.gp.client.SingleGroup;
 import cn.gp.model.Basic;
-import cn.gp.service.*;
+import cn.gp.model.Request;
 import cn.gp.service.impl.ReportImpl;
+import cn.gp.service.impl.SingleFileStreamImpl;
 import cn.gp.service.impl.SingleGroupImpl;
 
 import java.lang.reflect.Constructor;
@@ -28,8 +30,7 @@ public class Service {
         // 注册的服务
         servers.put(Report.class.getName(), ReportImpl.class);
         servers.put(SingleGroup.class.getName(), SingleGroupImpl.class);
-        servers.put(FileStream.class.getName(), FileStreamImpl.class);
-        servers.put(Group.class.getName(), GroupImpl.class);
+        servers.put(SingleFileStream.class.getName(), SingleFileStreamImpl.class);
 
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override

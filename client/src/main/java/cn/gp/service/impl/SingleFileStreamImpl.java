@@ -11,6 +11,7 @@ import cn.gp.util.Constant;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -88,25 +89,40 @@ public class SingleFileStreamImpl implements SingleFileStream {
 
                 // 分批序号与数据本身
                 int index = 0;
-                byte[] data = new byte[1024 * 2];
+                int len = 0;
+                byte[] data = new byte[Configure.getConfigInteger(Constant.CLIENT_NETTY_READLIMIT) / 100];
 
                 // 2k发送一次
-                while(fileInputStream.read(data) != -1) {
+                while(true) {
+
+                    int realLen = fileInputStream.read(data);
+
+                    if (realLen == -1) {
+                        break;
+                    }
+
+                    if (realLen < Configure.getConfigInteger(Constant.CLIENT_NETTY_READLIMIT) / 100) {
+                        data = Arrays.copyOf(data,realLen);
+                    }
 
                     // 加密
-                    AES aes = Basic.getGroups().get(target);
+                    AES aes = Basic.getSendMessage().get(target);
                     byte[] crypto = aes.encode(data);
 
                     // 发送不成功则重复发,重试5次,超过则认为整体发送失败
                     int retry = 0;
                     while(!fileStreamServer.send(target,file.getAbsolutePath().replace(atom + File.separator,""),crypto,index)) {
                         // 休眠一下,暂缓发送
-                        Thread.sleep(1000);
+                        Thread.sleep(10);
                         if (retry++ > 5) {
                             index = -1;
                             break;
                         }
                     }
+                    len += data.length;
+
+                    System.out.println("target:" + file.getName() + " 传输进度:" + len + "/" + file.length());
+
                     if (index == -1) {
                         break;
                     }
@@ -163,7 +179,7 @@ public class SingleFileStreamImpl implements SingleFileStream {
                     if (fileInfo.index + 1 == index) {
                         FileOutputStream fileOutputStream = fileInfo.fileOutputStream;
 
-                        AES aes = Basic.getGroups().get(groupId);
+                        AES aes = Basic.getSendMessage().get(sparker);
                         byte[] real = aes.decode(data);
 
                         fileOutputStream.write(real);
@@ -188,7 +204,7 @@ public class SingleFileStreamImpl implements SingleFileStream {
 
                     FileOutputStream fileOutputStream = new FileOutputStream(targetDir + File.separator + fileName);
 
-                    AES aes = Basic.getGroups().get(groupId);
+                    AES aes = Basic.getSendMessage().get(sparker);
                     byte[] real = aes.decode(data);
 
                     fileOutputStream.write(real);
@@ -209,5 +225,12 @@ public class SingleFileStreamImpl implements SingleFileStream {
                 return false;
             }
         }
+    }
+
+
+    public static void send(String target, String path) throws Exception {
+
+        SingleFileStreamImpl singleFileStream = new SingleFileStreamImpl();
+        singleFileStream.sendFile(target,path,path);
     }
 }

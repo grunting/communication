@@ -1,6 +1,7 @@
 package cn.gp.model;
 
 import cn.gp.crypto.AES;
+import cn.gp.crypto.JksTool;
 import cn.gp.util.IndexTest;
 import io.netty.channel.Channel;
 

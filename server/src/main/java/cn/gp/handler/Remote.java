@@ -1,5 +1,6 @@
 package cn.gp.handler;
 
+import cn.gp.model.Request;
 import io.netty.channel.Channel;
 import io.netty.util.internal.ConcurrentSet;
 

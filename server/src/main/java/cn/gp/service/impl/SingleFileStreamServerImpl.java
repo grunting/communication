@@ -1,5 +1,6 @@
 package cn.gp.service.impl;
 
+import cn.gp.client.SingleFileStream;
 import cn.gp.handler.Remote;
 import cn.gp.model.Basic;
 import cn.gp.model.ClientBean;
@@ -29,9 +30,9 @@ public class SingleFileStreamServerImpl implements SingleFileStreamServer {
     public boolean send(String target, String fileName, byte[] bytes, int index) {
 
         ClientBean clientBeanSelf = Basic.getIndex().getNode("channelid",channel.id().asLongText()).iterator().next();
-        ClientBean clientBeanTarget = Basic.getIndex().getNode(target).iterator().next();
+        ClientBean clientBeanTarget = Basic.getIndex().getNode("names",target).iterator().next();
 
-        FileStream fileStream = Remote.getRemoteProxyObj(FileStream.class,clientBeanTarget.getChannel());
+        SingleFileStream fileStream = Remote.getRemoteProxyObj(SingleFileStream.class,clientBeanTarget.getChannel());
         return fileStream.recoveFile(target,clientBeanSelf.getName(),fileName,index,bytes);
     }
 
@@ -43,9 +44,9 @@ public class SingleFileStreamServerImpl implements SingleFileStreamServer {
      */
     public boolean createDir(String target, String path) {
 
-        ClientBean clientBeanTarget = Basic.getIndex().getNode(target).iterator().next();
+        ClientBean clientBeanTarget = Basic.getIndex().getNode("names",target).iterator().next();
 
-        FileStream fileStream = Remote.getRemoteProxyObj(FileStream.class,clientBeanTarget.getChannel());
+        SingleFileStream fileStream = Remote.getRemoteProxyObj(SingleFileStream.class,clientBeanTarget.getChannel());
         return fileStream.createDir(path);
     }
 }

@@ -1,5 +1,6 @@
 package cn.gp.main;
 
+import cn.gp.crypto.JksTool;
 import cn.gp.handler.*;
 import cn.gp.handler.ChannelHandler;
 import cn.gp.model.Basic;

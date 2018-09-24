@@ -1,5 +1,6 @@
 package cn.gp.model;
 
+import cn.gp.crypto.JksTool;
 import cn.gp.util.IndexTest;
 
 import java.security.PublicKey;
