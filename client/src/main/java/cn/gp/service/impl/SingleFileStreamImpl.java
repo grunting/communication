@@ -112,8 +112,6 @@ public class SingleFileStreamImpl implements SingleFileStream {
                     // 发送不成功则重复发,重试5次,超过则认为整体发送失败
                     int retry = 0;
                     while(!fileStreamServer.send(target,file.getAbsolutePath().replace(atom + File.separator,""),crypto,index)) {
-                        // 休眠一下,暂缓发送
-                        Thread.sleep(10);
                         if (retry++ > 5) {
                             index = -1;
                             break;
