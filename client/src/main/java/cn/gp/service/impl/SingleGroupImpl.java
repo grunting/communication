@@ -31,7 +31,7 @@ public class SingleGroupImpl implements SingleGroup {
 
         int i1 = Integer.parseInt(new String(real)) + 1;
         Random random = new Random();
-        int i2 = random.nextInt();
+        int i2 = random.nextInt(Integer.MAX_VALUE) - 1;
         String tar = String.valueOf(i1) + "," + String.valueOf(i2);
 
         // 使用自身私钥加密,证明自己
@@ -101,7 +101,8 @@ public class SingleGroupImpl implements SingleGroup {
         SingleGroupServer singleGroupServer = Remote.getRemoteProxyObj(SingleGroupServer.class);
 
         Random random = new Random();
-        int i1 = random.nextInt();
+        // 小概率会得到极大值
+        int i1 = random.nextInt(Integer.MAX_VALUE) - 1;
 
 
         // 用自身的秘钥发送随机数,证明自身

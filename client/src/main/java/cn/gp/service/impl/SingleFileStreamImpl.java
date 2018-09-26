@@ -16,11 +16,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Created by gaopeng on 2018/9/20.
+ * 传输文件
  */
 public class SingleFileStreamImpl implements SingleFileStream {
 
-    // 存放临时文件的地方
+    // 存放临时文件的地址
     private static final String targetDir = Configure.getConfigString(Constant.CLIENT_TARGET_DIR);
 
     // 记录整个节点的数据传输句柄
@@ -30,10 +30,18 @@ public class SingleFileStreamImpl implements SingleFileStream {
      * 内部类,为了实现数据传输句柄相对数据
      */
     private static class FileInfo {
+        // 写入文件的入口
         FileOutputStream fileOutputStream;
+
+        // 当前序号
         int index;
     }
 
+    /**
+     * 创建文件夹
+     * @param path 相对路径
+     * @return 返回创建成功与否
+     */
     public boolean createDir(String path) {
         try {
             File file = new File(targetDir + File.separator + path);
@@ -90,7 +98,7 @@ public class SingleFileStreamImpl implements SingleFileStream {
                 // 分批序号与数据本身
                 int index = 0;
                 int len = 0;
-                byte[] data = new byte[Configure.getConfigInteger(Constant.CLIENT_NETTY_READLIMIT) / 100];
+                byte[] data = new byte[Configure.getConfigInteger(Constant.CLIENT_TARGET_BATCH)];
 
                 // 2k发送一次
                 while(true) {
@@ -101,7 +109,7 @@ public class SingleFileStreamImpl implements SingleFileStream {
                         break;
                     }
 
-                    if (realLen < Configure.getConfigInteger(Constant.CLIENT_NETTY_READLIMIT) / 100) {
+                    if (realLen < Configure.getConfigInteger(Constant.CLIENT_TARGET_BATCH)) {
                         data = Arrays.copyOf(data,realLen);
                     }
 
