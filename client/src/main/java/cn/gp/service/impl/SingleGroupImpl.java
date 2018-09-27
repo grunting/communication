@@ -75,19 +75,6 @@ public class SingleGroupImpl implements SingleGroup {
     }
 
     /**
-     * 接收信息
-     * @param name 发送方名称
-     * @param crypto 加密信息
-     * @return 返回接收成功与否
-     * @throws Exception
-     */
-    public boolean receiveMessage(String name, byte[] crypto) throws Exception {
-        byte[] real = Basic.getSendMessage().get(name).decode(crypto);
-        System.out.println(name + ":" + new String(real));
-        return true;
-    }
-
-    /**
      * 创建单人的分组
      * @param name 创建分组的对方
      * @return 返回创建成功与否
@@ -132,6 +119,19 @@ public class SingleGroupImpl implements SingleGroup {
             }
         }
         return false;
+    }
+
+    /**
+     * 接收信息
+     * @param name 发送方名称
+     * @param crypto 加密信息
+     * @return 返回接收成功与否
+     * @throws Exception
+     */
+    public boolean receiveMessage(String name, byte[] crypto) throws Exception {
+        byte[] real = Basic.getSendMessage().get(name).decode(crypto);
+        System.out.println(name + ":" + new String(real));
+        return true;
     }
 
     /**

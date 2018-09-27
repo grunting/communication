@@ -1,5 +1,6 @@
 package cn.gp.main;
 
+import cn.gp.handler.ScannerHandler;
 import cn.gp.model.Basic;
 
 /**
@@ -16,6 +17,8 @@ public class Client {
 
         System.out.println("Client start");
         System.out.println("My name is " + Basic.getName());
+
+        ScannerHandler.run();
 
         NettyClient.run();
     }

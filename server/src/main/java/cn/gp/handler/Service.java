@@ -2,9 +2,11 @@ package cn.gp.handler;
 
 import cn.gp.client.SingleFileStream;
 import cn.gp.model.Request;
+import cn.gp.server.GroupServer;
 import cn.gp.server.RegisterServer;
 import cn.gp.server.SingleFileStreamServer;
 import cn.gp.server.SingleGroupServer;
+import cn.gp.service.impl.GroupServerImpl;
 import cn.gp.service.impl.RegisterServerImpl;
 import cn.gp.service.impl.SingleFileStreamServerImpl;
 import cn.gp.service.impl.SingleGroupServerImpl;
@@ -30,7 +32,7 @@ public class Service {
 
         // 注册的服务
         servers.put(RegisterServer.class.getName(), RegisterServerImpl.class);
-        servers.put(SingleGroupServer.class.getName(), SingleGroupServerImpl.class);
+        servers.put(GroupServer.class.getName(), GroupServerImpl.class);
         servers.put(SingleFileStreamServer.class.getName(), SingleFileStreamServerImpl.class);
 
         Runtime.getRuntime().addShutdownHook(new Thread() {

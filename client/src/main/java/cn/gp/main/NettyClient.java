@@ -5,6 +5,7 @@ import cn.gp.handler.*;
 import cn.gp.handler.ChannelHandler;
 import cn.gp.model.Basic;
 import cn.gp.proto.Data;
+import cn.gp.service.impl.ReportImpl;
 import cn.gp.util.Configure;
 import cn.gp.util.Constant;
 import io.netty.bootstrap.Bootstrap;
@@ -72,8 +73,7 @@ public class NettyClient {
             Channel channel = f.channel();
 
             Basic.setChannel(channel);
-            ScannerHandler.run();
-
+            ReportImpl.send();
             f.channel().closeFuture().sync();
 
         } catch (Exception e) {

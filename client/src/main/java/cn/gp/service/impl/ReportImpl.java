@@ -19,12 +19,11 @@ public class ReportImpl implements Report {
     public void lostClient(String channelId) {
 
         for (Friend friend : Basic.getIndexTest().getNode("channelid",channelId)) {
+            if (GroupImpl.passageWays.containsKey(friend.getName())) {
+                GroupImpl.passageWays.remove(friend.getName());
+            }
             friend.setDie();
         }
-
-        System.out.println();
-        System.out.println(Basic.getIndexTest().getAllNode());
-        System.out.print("order:");
     }
 
     /**

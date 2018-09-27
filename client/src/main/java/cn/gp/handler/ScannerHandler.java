@@ -3,6 +3,7 @@ package cn.gp.handler;
 import cn.gp.client.SingleFileStream;
 import cn.gp.model.Basic;
 import cn.gp.model.Friend;
+import cn.gp.service.impl.GroupImpl;
 import cn.gp.service.impl.ReportImpl;
 import cn.gp.service.impl.SingleFileStreamImpl;
 import cn.gp.service.impl.SingleGroupImpl;
@@ -38,8 +39,6 @@ public class ScannerHandler {
      */
     public static void send() throws Exception{
 
-        ReportImpl.send();
-
         while(true) {
 
             System.out.print("order:");
@@ -68,7 +67,7 @@ public class ScannerHandler {
                 String[] ss = split[1].split(",");
                 SingleFileStreamImpl.send(ss[0],ss[1]);
             } else {
-                System.out.println("发送结果:" + SingleGroupImpl.sendMessage(split[0],split[1]));
+                System.out.println("发送结果:" + GroupImpl.sendMessage(split[0],split[1]));
             }
         }
         System.exit(0);
