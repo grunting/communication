@@ -2,13 +2,19 @@ package cn.gp.test;
 
 import cn.gp.core.Client;
 import cn.gp.crypto.RSA;
+import cn.gp.model.Friend;
 import cn.gp.server.RegisterServer;
 import cn.gp.client.Report;
+import cn.gp.util.IndexTest;
 
 /**
  * 实现上报功能
  */
-public class ReportImpl implements Report {
+public class ReportImpl2 implements Report {
+
+	public static Client client;
+
+	public static IndexTest<Friend> index = new IndexTest<Friend>();
 
 	/**
 	 * 丢失客户端公告
@@ -16,7 +22,11 @@ public class ReportImpl implements Report {
 	 */
 	public void lostClient(String channelId) {
 
-		System.out.println(channelId);
+		for (Friend friend : index.getNode("channelid",channelId)) {
+			if (GroupImpl2.passageWays.containsKey(friend.getName())) {
+				GroupImpl2.passageWays.remove(friend.getName());
+			}
+		}
 	}
 
 	/**
@@ -26,8 +36,16 @@ public class ReportImpl implements Report {
 	 */
 	public void findClient(String name,String channelId) {
 
-		System.out.println(name + " : " + channelId);
+		if (!client.getTrustMap().containsKey(name)) {
+			return;
+		}
 
+		Friend friend = new Friend(channelId,name,client.getTrustMap().get(name),index);
+
+		index.setIndex("names",name,friend);
+		index.setIndex("channelid",channelId,friend);
+
+		System.out.println(index.getAllNode());
 	}
 
 	/**
@@ -38,13 +56,14 @@ public class ReportImpl implements Report {
 		RegisterServer registerServer = client.getRemoteProxyObj(RegisterServer.class);
 
 		// 目前签名中只发布自身名字的签名(通道是加密的)
-
 		byte[] crypto = RSA.encrypt(client.getName().getBytes(),client.getKeyPair().getPrivate());
 
 		boolean b = registerServer.addClient(client.getName(),crypto);
 		if(!b) {
 			System.out.println("服务器拒绝了本节点的注册");
 			System.exit(2);
+		} else {
+			System.out.println("注册成功");
 		}
 	}
 }

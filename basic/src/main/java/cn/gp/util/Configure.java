@@ -1,6 +1,7 @@
 package cn.gp.util;
 
 import java.io.FileInputStream;
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -8,8 +9,12 @@ import java.util.Properties;
  */
 public class Configure {
 
+	// 配置文件实例
 	private Properties properties;
 
+	/**
+	 * 私有化
+	 */
 	private Configure() {
 		super();
 		properties = new Properties();
@@ -36,6 +41,17 @@ public class Configure {
 			e.printStackTrace();
 			return null;
 		}
+	}
+
+	/**
+	 * 根据自定义参数集实例化配置
+	 * @param params 参数列表
+	 * @return 返回配置实例
+     */
+	public static Configure getInstance(Map<String,String> params) {
+		Configure configure = new Configure();
+		configure.properties.putAll(params);
+		return configure;
 	}
 
 	/**

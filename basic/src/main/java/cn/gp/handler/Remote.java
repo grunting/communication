@@ -18,8 +18,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class Remote {
 
-	private Channel channel;
-
 	// 命令序号生成器
 	private AtomicInteger atomicInteger = new AtomicInteger(1);
 
@@ -43,11 +41,9 @@ public class Remote {
 	}
 
 	public void close() {
-		pool.shutdown();
-	}
-
-	public void setChannel(Channel channel) {
-		this.channel = channel;
+		if (!pool.isShutdown()) {
+			pool.shutdownNow();
+		}
 	}
 
 	protected void setResult(Integer index, Object o) {
@@ -58,7 +54,7 @@ public class Remote {
 		}
 	}
 
-	public <T> T getRemoteProxyObj(final Class<?> serviceInterface) {
+	public <T> T getRemoteProxyObj(final Class<?> serviceInterface,final Channel channel) {
 
 		return (T) Proxy.newProxyInstance(serviceInterface.getClassLoader(), new Class<?>[]{serviceInterface}, new InvocationHandler() {
 			public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
@@ -81,9 +77,7 @@ public class Remote {
 					public void run() {
 						super.run();
 						try {
-							while (ChannelHandler.sendFinalChannelFuture(request,channel) == null) {
-								Thread.sleep(100);
-							}
+							ChannelHandler.sendFinalChannelFuture(request,channel);
 						} catch (Exception e) {
 							e.printStackTrace();
 						}

@@ -27,6 +27,8 @@ import javax.net.ssl.SSLEngine;
 import javax.net.ssl.TrustManagerFactory;
 import java.security.KeyManagementException;
 import java.security.KeyPair;
+import java.security.PublicKey;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 
@@ -37,30 +39,77 @@ import io.netty.channel.Channel;
  */
 public class Client {
 
+	// 本机名
 	private String name;
 
+	// 秘钥对
 	private KeyPair keyPair;
 
 	// 远端通道
-	private Channel channel;
+	public Channel channel;
 
 	// 本客户端存货与否
 	private AtomicBoolean isAlive = new AtomicBoolean(true);
 
+	// 发送给远端执行的实例
 	private Remote remote;
+
+	// 远端需要本地执行的实例
 	private Service service;
+
+	private Configure configure;
+
+	private JksTool jksTool;
+
+	// 可信列表
+	private Map<String,PublicKey> trustMap;
 
 	/**
 	 * 私有化构造
 	 */
 	private Client() {
 		super();
+
+		this.remote = new Remote();
+		this.service = new Service();
+		this.configure = Configure.getInstance("basic.properties","client.config");
+
+		if (configure != null) {
+			this.jksTool = JksTool.getInstance(
+					configure.getConfigString(Constant.CLIENT_JKS_PATH),
+					configure.getConfigString(Constant.CLIENT_JKS_KEYPASS),
+					configure.getConfigString(Constant.CLIENT_JKS_KEYPASS)
+			);
+		} else {
+			isAlive.set(false);
+		}
+
+		if (jksTool != null) {
+			this.name = jksTool.getAlias();
+			this.keyPair = jksTool.getKeyPair();
+			this.trustMap = jksTool.getTrustMap();
+		} else {
+			isAlive.set(false);
+		}
+
 	}
 
+	public Map<String, PublicKey> getTrustMap() {
+		return trustMap;
+	}
+
+	/**
+	 * 获取本机名
+	 * @return 本机名
+     */
 	public String getName() {
 		return name;
 	}
 
+	/**
+	 * 获取本机秘钥对
+	 * @return 秘钥对
+     */
 	public KeyPair getKeyPair() {
 		return keyPair;
 	}
@@ -69,12 +118,18 @@ public class Client {
 	 * 关闭函数
 	 */
 	public void close() {
+
+		// 先关闭本实例
 		isAlive.set(false);
 
+		// 关闭给远端执行的实例
 		remote.close();
+
+		// 关闭本地执行的实例
 		service.close();
 
-		if (channel != null) {
+		// 关闭连接通道
+		if (channel != null && channel.isOpen()) {
 			channel.close();
 		}
 	}
@@ -94,9 +149,16 @@ public class Client {
 	 * @return 返回服务实例
 	 */
 	public <T> T getRemoteProxyObj(Class<?> serviceInterface) {
-		return this.remote.getRemoteProxyObj(serviceInterface);
+		System.out.println(channel);
+
+		return this.remote.getRemoteProxyObj(serviceInterface,channel);
 	}
 
+	/**
+	 * 设置本机提供的接口(与服务器需要配对添加)
+	 * @param key 接口名
+	 * @param value 接口实现
+     */
 	public void putServiceInterFace(String key, Class value) {
 		this.service.putServers(key,value);
 	}
@@ -110,43 +172,25 @@ public class Client {
 		// 非单例,可以多开
 		final Client client = new Client();
 
-		final Remote remote = new Remote();
-		final Service service = new Service();
-
-		client.remote = remote;
-		client.service = service;
-
-		// 实例化本客户端配置文件
-		final Configure configure = Configure.getInstance("basic.properties","client.config");
-
 		// 根据配置实例化限速相关
 		final EventExecutorGroup executorGroup = new DefaultEventExecutorGroup(Runtime.getRuntime().availableProcessors() * 2);
 		final GlobalTrafficShapingHandler trafficShapingHandler = new GlobalTrafficShapingHandler(
 				executorGroup,
-				configure.getConfigInteger(Constant.CLIENT_NETTY_WRITELIMIT),
-				configure.getConfigInteger(Constant.CLIENT_NETTY_READLIMIT));
-
-		final JksTool jksTool = JksTool.getInstance(
-				configure.getConfigString(Constant.CLIENT_JKS_PATH),
-				configure.getConfigString(Constant.CLIENT_JKS_KEYPASS),
-				configure.getConfigString(Constant.CLIENT_JKS_KEYPASS)
-		);
-
-		client.name = jksTool.getAlias();
-		client.keyPair = jksTool.getKeyPair();
+				client.configure.getConfigInteger(Constant.CLIENT_NETTY_WRITELIMIT),
+				client.configure.getConfigInteger(Constant.CLIENT_NETTY_READLIMIT));
 
 		// 开启可重试的线程
-		final Thread thread = new Thread(){
+		Thread thread = new Thread(){
 
 			@Override
 			public void run() {
 				super.run();
-				int retry = configure.getConfigInteger(Constant.CLIENT_SERVER_RETRY,5);
+				int retry = client.configure.getConfigInteger(Constant.CLIENT_SERVER_RETRY,5);
 				int count = 0;
 				while (true) {
 
 					// 判断是否到了就义的时刻
-					if (!client.isAlive.get()) {
+					if (!client.getIsAlive()) {
 						break;
 					}
 
@@ -155,7 +199,7 @@ public class Client {
 						break;
 					}
 
-					if (retry != configure.getConfigInteger(Constant.CLIENT_SERVER_RETRY)) {
+					if (retry != client.configure.getConfigInteger(Constant.CLIENT_SERVER_RETRY)) {
 						count ++;
 						System.out.println("服务器连接失败,进行第" + count + "次重试");
 					}
@@ -172,23 +216,21 @@ public class Client {
 									protected void initChannel(SocketChannel ch) throws Exception {
 										ChannelPipeline channelPipeline = ch.pipeline();
 										channelPipeline.addLast(trafficShapingHandler);
-										channelPipeline.addLast(createSslHandler(configure,jksTool));
+										channelPipeline.addLast(createSslHandler(client.configure,client.jksTool));
 										channelPipeline.addLast(new ProtobufVarint32FrameDecoder());
 										channelPipeline.addLast(new ProtobufDecoder(Data.Message.getDefaultInstance()));
 										channelPipeline.addLast(new ProtobufVarint32LengthFieldPrepender());
 										channelPipeline.addLast(new ProtobufEncoder());
-										channelPipeline.addLast(executorGroup,new ChannelHandler(remote,service));
+										channelPipeline.addLast(executorGroup,new ChannelHandler(client.remote,client.service,null,client));
 									}
 								})
 								.option(ChannelOption.TCP_NODELAY,true);
 						ChannelFuture f = b.connect(
-								configure.getConfigString(
+								client.configure.getConfigString(
 										Constant.CLIENT_SERVER_HOST),
-								configure.getConfigInteger(
+								client.configure.getConfigInteger(
 										Constant.CLIENT_SERVER_PORT)).sync();
 						client.channel = f.channel();
-						remote.setChannel(client.channel);
-						service.setChannel(client.channel);
 
 						// 正常连接时将在此行阻塞
 						f.channel().closeFuture().sync();
@@ -196,26 +238,23 @@ public class Client {
 						e.printStackTrace();
 					} finally {
 						group.shutdownGracefully();
-						if (client.channel != null) {
+						if (client.channel != null && client.channel.isOpen()) {
 							try {
 								client.channel.close();
 							} catch (Exception e) {
 								e.printStackTrace();
 							}
-							client.channel = null;
 						}
 					}
 					try {
 
 						// 重试间隔
-						Thread.sleep(configure.getConfigInteger(Constant.CLIENT_SERVER_INTERVAL));
+						Thread.sleep(client.configure.getConfigInteger(Constant.CLIENT_SERVER_INTERVAL));
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
 				}
-				client.isAlive.set(false);
-				client.remote.close();
-				client.service.close();
+				client.close();
 			}
 		};
 
