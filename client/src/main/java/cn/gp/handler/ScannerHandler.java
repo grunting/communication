@@ -1,12 +1,9 @@
 package cn.gp.handler;
 
-import cn.gp.client.SingleFileStream;
 import cn.gp.model.Basic;
 import cn.gp.model.Friend;
 import cn.gp.service.impl.GroupImpl;
-import cn.gp.service.impl.ReportImpl;
 import cn.gp.service.impl.SingleFileStreamImpl;
-import cn.gp.service.impl.SingleGroupImpl;
 
 import java.util.Scanner;
 import java.util.Set;

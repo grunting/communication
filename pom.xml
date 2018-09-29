@@ -12,6 +12,7 @@
         <module>client</module>
         <module>server</module>
         <module>service</module>
+        <module>basic</module>
     </modules>
 
 

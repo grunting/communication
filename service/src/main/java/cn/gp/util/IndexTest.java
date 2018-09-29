@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentMap;
  */
 public class IndexTest<K extends IsAlive> {
 
-    private ConcurrentMap<String,ConcurrentMap<String,ConcurrentSet<K>>> index;
+    private ConcurrentMap<String,ConcurrentMap<String,ConcurrentSet<K>>> index = new ConcurrentHashMap<String, ConcurrentMap<String, ConcurrentSet<K>>>();
 
     /**
      * 是否存在这个索引
