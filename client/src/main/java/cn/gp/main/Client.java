@@ -15,7 +15,7 @@ public class Client {
      */
     public static void main(String[] args) {
 
-        System.out.println("Client start");
+        System.out.println("ClientNetty start");
         System.out.println("My name is " + Basic.getName());
 
         ScannerHandler.run();

@@ -17,4 +17,15 @@ public interface Report {
      * @param channelId 服务端通道id
      */
     void findClient(String name, String channelId);
+
+    /**
+     * 发送本客户端信息给服务器
+     */
+    boolean send() throws Exception;
+
+	/**
+	 * 统计目前总客户端数目
+     * @return 数量
+     */
+    int count();
 }

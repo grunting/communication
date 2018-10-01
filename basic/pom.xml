@@ -11,12 +11,4 @@
 
     <artifactId>basic</artifactId>
 
-    <dependencies>
-        <dependency>
-            <groupId>communication</groupId>
-            <artifactId>service</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
-    </dependencies>
-
 </project>

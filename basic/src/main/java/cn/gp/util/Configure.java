@@ -13,9 +13,9 @@ public class Configure {
 	private Properties properties;
 
 	/**
-	 * 私有化
+	 * 实例化一个空的配置文件
 	 */
-	private Configure() {
+	public Configure() {
 		super();
 		properties = new Properties();
 	}
@@ -27,8 +27,9 @@ public class Configure {
 	 * @return 返回配置实例
 	 */
 	public static Configure getInstance(String configurePath,String defaultConfigure) {
+		Configure configure = new Configure();
 		try {
-			Configure configure = new Configure();
+
 			String config = System.getProperty(defaultConfigure);
 			if (config == null) {
 				ClassLoader runtime = Thread.currentThread().getContextClassLoader();
@@ -39,8 +40,12 @@ public class Configure {
 			return configure;
 		} catch (Exception e) {
 			e.printStackTrace();
-			return null;
+			return configure;
 		}
+	}
+
+	public Properties getProperties() {
+		return properties;
 	}
 
 	/**

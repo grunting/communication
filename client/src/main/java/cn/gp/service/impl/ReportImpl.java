@@ -52,7 +52,7 @@ public class ReportImpl implements Report {
     /**
      * 发送本客户端信息给服务器
      */
-    public static void send() throws Exception {
+    public void send() throws Exception {
 
         RegisterServer registerServer = Remote.getRemoteProxyObj(RegisterServer.class);
 

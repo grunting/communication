@@ -10,7 +10,6 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="service" />
     <orderEntry type="library" name="Maven: io.protostuff:protostuff-core:1.4.0" level="project" />
     <orderEntry type="library" name="Maven: io.protostuff:protostuff-api:1.4.0" level="project" />
     <orderEntry type="library" name="Maven: io.protostuff:protostuff-runtime:1.4.0" level="project" />

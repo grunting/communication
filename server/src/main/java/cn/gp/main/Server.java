@@ -15,8 +15,8 @@ public class Server {
     public static void main(String[] args) throws Exception {
 
         // 启动准备
-        System.out.println("Server start");
-        System.out.println("Server name is " + Basic.getName());
+        System.out.println("ServerNetty start");
+        System.out.println("ServerNetty name is " + Basic.getName());
 
         NettyServer.run();
 

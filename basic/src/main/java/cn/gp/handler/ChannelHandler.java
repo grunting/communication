@@ -1,6 +1,6 @@
 package cn.gp.handler;
 
-import cn.gp.core.Client;
+import cn.gp.core.Basic;
 import cn.gp.model.Request;
 import cn.gp.proto.Data;
 import cn.gp.service.ChannelHook;
@@ -17,16 +17,14 @@ import io.netty.channel.SimpleChannelInboundHandler;
 public class ChannelHandler extends SimpleChannelInboundHandler<Data.Message> {
 
 	private Remote remote;
-	private Service service;
 	private ChannelHook channelHook;
-	private Client client;
+	private Basic basic;
 
-	public ChannelHandler(Remote remote,Service service,ChannelHook channelHook,Client client) {
+	public ChannelHandler(Remote remote,ChannelHook channelHook,Basic basic) {
 		super();
 		this.remote = remote;
-		this.service = service;
 		this.channelHook = channelHook;
-		this.client = client;
+		this.basic = basic;
 	}
 
 	/**
@@ -42,14 +40,10 @@ public class ChannelHandler extends SimpleChannelInboundHandler<Data.Message> {
 		// 从远端获取执行结果
 		if (request.getServiceName() == null) {
 			remote.setResult(request.getId(),request.getResult());
+
+		// 需要本地执行的任务的处理
 		} else {
-			if (client == null) {
-				service.sendMessageServer(ctx.channel(),request);
-			} else {
-				service.sendMessage(client.channel,request);
-			}
-
-
+			basic.sendMessage(ctx.channel(),request);
 		}
 	}
 

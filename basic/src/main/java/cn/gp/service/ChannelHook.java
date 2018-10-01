@@ -1,12 +1,12 @@
 package cn.gp.service;
 
+import cn.gp.core.Basic;
 import io.netty.channel.ChannelHandlerContext;
 
 /**
  * 对通道状态处理的钩子接口
  */
 public interface ChannelHook {
-
 
     /**
      * 通道丢失

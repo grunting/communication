@@ -1,6 +1,6 @@
 package cn.gp.model;
 
-import cn.gp.base.IsAlive;
+import cn.gp.service.IsAlive;
 import cn.gp.util.IndexTest;
 import io.netty.channel.Channel;
 
@@ -74,6 +74,7 @@ public class ClientBean implements IsAlive {
      * 设置节点失效
      */
     public void setDie() {
+
         isAlive.set(false);
 
         for (String key : properties.keySet()) {
@@ -93,6 +94,8 @@ public class ClientBean implements IsAlive {
      * @return
      */
     public boolean isAlive() {
+
+
         return isAlive.get() && this.channel.isActive();
     }
 
@@ -103,5 +106,15 @@ public class ClientBean implements IsAlive {
      */
     public void setProperties(String key, String value) {
         properties.put(key,value);
+    }
+
+    @Override
+    public String toString() {
+        return "ClientBean{" +
+                "name='" + name + '\'' +
+                ", channelId='" + channelId + '\'' +
+                ", isAlive=" + isAlive +
+                ", properties=" + properties +
+                '}';
     }
 }

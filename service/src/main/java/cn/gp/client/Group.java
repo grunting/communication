@@ -29,4 +29,15 @@ public interface Group {
      * @throws Exception
      */
     boolean receiveMessage(String name,byte[] crypto) throws Exception;
+
+	/**
+     * 发送信息
+     * @param name 对方的名字
+     * @param message 信息
+     * @return 成功与否
+     * @throws Exception
+     */
+    boolean sendMessage(String name,String message) throws Exception;
+
+    String getMessage(String nameAndTime) throws Exception;
 }
