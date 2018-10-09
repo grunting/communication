@@ -10,11 +10,17 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Arrays;
 
 /**
  * 远程发送过来的数据的处理部分
  */
 public class ChannelHandler extends SimpleChannelInboundHandler<Data.Message> {
+
+	private static final Logger logger = LoggerFactory.getLogger(ChannelHandler.class);
 
 	private Remote remote;
 	private ChannelHook channelHook;
@@ -37,8 +43,11 @@ public class ChannelHandler extends SimpleChannelInboundHandler<Data.Message> {
 	protected void messageReceived(ChannelHandlerContext ctx, Data.Message msg) throws Exception {
 		Request request = ByteAndObject.deserialize(msg.getBody().toByteArray());
 
+		logger.debug("messageReceived request:{}",request);
+
 		// 从远端获取执行结果
 		if (request.getServiceName() == null) {
+
 			remote.setResult(request.getId(),request.getResult());
 
 		// 需要本地执行的任务的处理
@@ -54,6 +63,13 @@ public class ChannelHandler extends SimpleChannelInboundHandler<Data.Message> {
 	 * @return 异步操作实例
 	 */
 	protected static ChannelFuture sendFinalChannelFuture(Request request, Channel channel) {
+
+		if (channel != null) {
+			logger.debug("sendFinalChannelFuture request:{},channel:{},channelStatus:{}", Arrays.asList(request,channel,"active is" + channel.isActive() + " open is" + channel.isOpen() + " registered is" + channel.isRegistered() + " writable is" + channel.isWritable()));
+		} else {
+			logger.debug("sendFinalChannelFuture channel is null,request:{}", request);
+
+		}
 
 		if (channel == null || !channel.isWritable()) {
 			return null;
@@ -72,6 +88,8 @@ public class ChannelHandler extends SimpleChannelInboundHandler<Data.Message> {
 	@Override
 	public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
 		super.handlerRemoved(ctx);
+
+		logger.debug("handlerRemoved channel:{}", ctx.channel());
 		if (channelHook != null) {
 			channelHook.handlerRemoved(ctx);
 		}
@@ -85,6 +103,8 @@ public class ChannelHandler extends SimpleChannelInboundHandler<Data.Message> {
 	@Override
 	public void channelInactive(ChannelHandlerContext ctx) throws Exception {
 		super.channelInactive(ctx);
+
+		logger.debug("channelInactive channel:{}", ctx.channel());
 		if (channelHook != null) {
 			channelHook.channelInactive(ctx);
 		}
@@ -99,6 +119,8 @@ public class ChannelHandler extends SimpleChannelInboundHandler<Data.Message> {
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
 		super.exceptionCaught(ctx, cause);
+
+		logger.debug("exceptionCaught channel:{}", ctx.channel());
 		if (channelHook != null) {
 			channelHook.exceptionCaught(ctx,cause);
 		}

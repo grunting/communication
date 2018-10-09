@@ -34,6 +34,13 @@ public interface Basic {
 	void setCheckReadyHook(CheckReadyHook checkReadyHook);
 
 	/**
+	 * 获取服务实现
+	 * @param key 键
+	 * @return 值
+     */
+	Class getServiceInterface(String key);
+
+	/**
 	 * 启动节点
 	 * @return 布尔
 	 */

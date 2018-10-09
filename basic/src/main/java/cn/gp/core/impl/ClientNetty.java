@@ -20,6 +20,8 @@ import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.traffic.GlobalTrafficShapingHandler;
 import io.netty.util.concurrent.DefaultEventExecutorGroup;
 import io.netty.util.concurrent.EventExecutorGroup;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -32,6 +34,8 @@ import java.security.KeyManagementException;
  */
 public class ClientNetty extends SimpleBasic {
 
+	private static final Logger logger = LoggerFactory.getLogger(ClientNetty.class);
+
 	public ClientNetty() {
 		super();
 	}
@@ -39,6 +43,9 @@ public class ClientNetty extends SimpleBasic {
 	@Override
 	public void setConfigPath(String configPath, String defaultConfigKey) {
 		super.setConfigPath(configPath, defaultConfigKey);
+
+		logger.debug("setConfigPath configPath:{},defaultConfigKey:{}",configPath,defaultConfigKey);
+
 		jksTool = JksTool.getInstance(
 				configure.getConfigString(Constant.CLIENT_JKS_PATH),
 				configure.getConfigString(Constant.CLIENT_JKS_KEYPASS),
@@ -52,6 +59,8 @@ public class ClientNetty extends SimpleBasic {
 	 */
 	@Override
 	public boolean start() {
+
+		logger.debug("start");
 
 		// 谁能教教我这里咋写……
 		final ClientNetty client = this;
@@ -70,21 +79,26 @@ public class ClientNetty extends SimpleBasic {
 				int retry = configure.getConfigInteger(Constant.CLIENT_SERVER_RETRY,5);
 				int count = 0;
 				while (true) {
+
 					// 判断是否到了就义的时刻
 					if (!getIsAlive()) {
+						logger.debug("server lost timeToDie");
 						break;
 					}
 
 					// 判断是否达到就义的次数
 					if (retry == 0) {
+						logger.debug("server lost retryExeceed,retryUpperLimit:{}",configure.getConfigInteger(Constant.SERVER_RESTART_RETRY));
 						break;
 					}
 
 					if (retry != configure.getConfigInteger(Constant.CLIENT_SERVER_RETRY)) {
 						count ++;
-						System.out.println("服务器连接失败,进行第" + count + "次重试");
+						logger.debug("server lost retry:{},retryUpperLimit:{}",count,configure.getConfigInteger(Constant.SERVER_RESTART_RETRY));
 					}
 					retry --;
+
+					logger.info("start client");
 
 					// 真实逻辑
 					EventLoopGroup group = new NioEventLoopGroup();
@@ -106,6 +120,9 @@ public class ClientNetty extends SimpleBasic {
 									}
 								})
 								.option(ChannelOption.TCP_NODELAY,true);
+
+
+						logger.info("connection server host:{},port:{}",configure.getConfigString(Constant.CLIENT_SERVER_HOST),configure.getConfigInteger(Constant.CLIENT_SERVER_PORT));
 						ChannelFuture f = b.connect(
 								configure.getConfigString(
 										Constant.CLIENT_SERVER_HOST),
@@ -113,18 +130,23 @@ public class ClientNetty extends SimpleBasic {
 										Constant.CLIENT_SERVER_PORT)).sync();
 						setChannel(f.channel());
 
+						logger.debug("client is started");
+
 						try {
-							while (!checkReadyHook.checkReadyHook()) {
-								Thread.sleep(100);
+							if (checkReadyHook.checkReadyHook()) {
+								checkSuccess.set(true);
 							}
-							checkSuccess.set(true);
+							logger.info("client is ready");
 						} catch (Exception e) {
+							logger.error("client is started,but hook is failed",e);
 							e.printStackTrace();
 						}
 
 						// 正常连接时将在此行阻塞
 						f.channel().closeFuture().sync();
 					} catch (Exception e) {
+
+						logger.error("client not started,but hook is failed",e);
 						e.printStackTrace();
 					} finally {
 						group.shutdownGracefully();
@@ -136,8 +158,8 @@ public class ClientNetty extends SimpleBasic {
 							}
 						}
 					}
-					try {
 
+					try {
 						// 重试间隔
 						Thread.sleep(configure.getConfigInteger(Constant.CLIENT_SERVER_INTERVAL));
 					} catch (Exception e) {
@@ -147,7 +169,6 @@ public class ClientNetty extends SimpleBasic {
 				close();
 			}
 		};
-
 
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			@Override
@@ -160,19 +181,31 @@ public class ClientNetty extends SimpleBasic {
 			}
 		});
 
-
-
 		thread.start();
 
 		return checkReady();
 	}
 
+
+	/**
+	 * 发送信息到指定通道中
+	 * @param channel 通道
+	 * @param request 信息
+	 */
 	public void sendMessage(Channel channel, Request request) {
-		// 感受一下这个绕
 		getService().sendMessageClient(channel,request);
 	}
 
+	/**
+	 * 给出加密处理
+	 * @param configure 配置
+	 * @param jksTool 秘钥配置
+	 * @return 返回加密处理实例
+	 * @throws Exception
+     */
 	private static SslHandler createSslHandler(Configure configure, JksTool jksTool) throws Exception {
+
+		logger.debug("createSslHandler configure:{},jksTool:{}",configure,jksTool);
 
 		// 访问Java密钥库，JKS是keytool创建的Java密钥库
 		TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());

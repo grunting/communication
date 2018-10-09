@@ -1,7 +1,9 @@
 package cn.gp.model;
 
+import java.util.Arrays;
+
 /**
- * 测试模型
+ * 通信模型
  */
 public class Request {
 
@@ -69,5 +71,17 @@ public class Request {
 
 	public void setResult(Object result) {
 		this.result = result;
+	}
+
+	@Override
+	public String toString() {
+		return "Request{" +
+				"id=" + id +
+				", serviceName='" + serviceName + '\'' +
+				", methodName='" + methodName + '\'' +
+				", parameterTypes=" + Arrays.toString(parameterTypes) +
+				", arguments=" + Arrays.toString(arguments) +
+				", result=" + result +
+				'}';
 	}
 }

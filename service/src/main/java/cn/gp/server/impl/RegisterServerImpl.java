@@ -8,11 +8,17 @@ import cn.gp.client.Report;
 import cn.gp.util.IndexTest;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Set;
 
 /**
  * 注册类实现
  */
 public class RegisterServerImpl implements RegisterServer {
+
+	private static final Logger logger = LoggerFactory.getLogger(RegisterServerImpl.class);
 
 	// 记录当前channel和客户端的对应关系
 	public static final IndexTest<ClientBean> index = new IndexTest<ClientBean>();
@@ -25,6 +31,10 @@ public class RegisterServerImpl implements RegisterServer {
 	public RegisterServerImpl(Channel channel,Basic basic){
 		this.channel = channel;
 		this.basic = basic;
+	}
+
+	public Set<ClientBean> getClientBean() {
+		return index.getAllNode();
 	}
 
 	/**
@@ -74,6 +84,7 @@ public class RegisterServerImpl implements RegisterServer {
 			}
 		}
 
+		logger.debug("addClient index:{}",index.getAllNode().toString());
 		return true;
 	}
 
@@ -94,5 +105,7 @@ public class RegisterServerImpl implements RegisterServer {
 			Report report = basic.getRemoteProxyObj(Report.class,clientBean.getChannel());
 			report.lostClient(channel.id().asLongText());
 		}
+
+		logger.debug("removeChannel index:{}",index.getAllNode().toString());
 	}
 }

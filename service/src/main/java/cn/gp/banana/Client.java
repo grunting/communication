@@ -60,6 +60,7 @@ public class Client {
 	 * @throws Exception
 	 */
 	public static String sendMessage(String name,String message) throws Exception {
+
 		Group group = getInstance().getRemoteProxyObj(Group.class);
 
 		Random random = new Random();

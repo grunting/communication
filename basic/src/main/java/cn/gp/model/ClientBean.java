@@ -91,7 +91,7 @@ public class ClientBean implements IsAlive {
 
     /**
      * 回应这个通道是否存活
-     * @return
+     * @return 布尔
      */
     public boolean isAlive() {
 

@@ -8,6 +8,8 @@ import cn.gp.service.CheckReadyHook;
 import cn.gp.util.Configure;
 import cn.gp.util.JksTool;
 import io.netty.channel.Channel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Constructor;
 import java.security.KeyPair;
@@ -19,6 +21,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * 服务基础抽象类
  */
 public abstract class SimpleBasic implements Basic {
+
+	private static final Logger logger = LoggerFactory.getLogger(SimpleBasic.class);
 
 	// 持有通道
 	private Channel channel;
@@ -59,7 +63,14 @@ public abstract class SimpleBasic implements Basic {
 	 * @param checkReadyHook 钩子函数
 	 */
 	public void setCheckReadyHook(CheckReadyHook checkReadyHook) {
+
+		logger.debug("setCheckReadyHook checkReadyHook:{}",checkReadyHook);
+
 		this.checkReadyHook = checkReadyHook;
+		if (getRemote() != null) {
+			getRemote().close();
+			this.remote = new Remote(this,checkReadyHook);
+		}
 	}
 
 	protected void setChannel(Channel channel) {
@@ -108,6 +119,9 @@ public abstract class SimpleBasic implements Basic {
 	 * @param defaultConfigKey 外部指定的配置文件
 	 */
 	public void setConfigPath(String configPath,String defaultConfigKey) {
+
+		logger.debug("setConfigPath configPath:{},defaultConfigKey:{}",configPath,defaultConfigKey);
+
 		this.configure.getProperties().putAll(Configure.getInstance(configPath,defaultConfigKey).getProperties());
 	}
 
@@ -117,6 +131,9 @@ public abstract class SimpleBasic implements Basic {
 	 * @param value 值
 	 */
 	public void addConfig(String key,String value) {
+
+		logger.debug("setConfigPath key:{},value:{}",key,value);
+
 		this.configure.getProperties().setProperty(key,value);
 	}
 
@@ -125,6 +142,9 @@ public abstract class SimpleBasic implements Basic {
 	 * @param channelHook 钩子接口
 	 */
 	public void setChannelHook(ChannelHook channelHook) {
+
+		logger.debug("setChannelHook channelHook:{}",channelHook);
+
 		this.channelHook = channelHook;
 	}
 
@@ -142,7 +162,9 @@ public abstract class SimpleBasic implements Basic {
 	 */
 	public boolean init() {
 
-		this.remote = new Remote(this);
+		logger.debug("init jksTool:{},checkReadyHook:{}",jksTool,checkReadyHook);
+
+		this.remote = new Remote(this,checkReadyHook);
 		this.service = new Service(this);
 
 		if (jksTool == null) {
@@ -158,13 +180,27 @@ public abstract class SimpleBasic implements Basic {
 	 * @param value 值
 	 */
 	public void putServiceInterface(String key, Class value) {
+
+		logger.debug("putServiceInterface key:{},value:{}",key,value);
+
 		this.service.putServers(key,value);
+	}
+
+	/**
+	 * 获取服务的实现
+	 * @param key 键
+	 * @return 值
+     */
+	public Class getServiceInterface(String key) {
+		return this.service.getServers(key);
 	}
 
 	/**
 	 * 关闭函数
 	 */
 	public void close() {
+
+		logger.debug("close");
 
 		isAlive.set(false);
 		isReady.set(false);
@@ -191,6 +227,16 @@ public abstract class SimpleBasic implements Basic {
 	}
 
 	/**
+	 * 设置启动成功与否
+	 * @param isSuccess 布尔
+     */
+	protected void setCheckSuccess(boolean isSuccess) {
+
+		logger.debug("setCheckSuccess checkSuccess:{}",isSuccess);
+		this.checkSuccess.set(isSuccess);
+	}
+
+	/**
 	 * 返回是否准备就绪
 	 * @return 布尔
 	 */
@@ -203,6 +249,8 @@ public abstract class SimpleBasic implements Basic {
 	 * @param b 布尔
 	 */
 	protected void setIsReady(boolean b) {
+
+		logger.debug("setIsReady isReady:{}",b);
 		this.isReady.set(b);
 	}
 
@@ -219,6 +267,8 @@ public abstract class SimpleBasic implements Basic {
 	 * @return 返回服务实例
 	 */
 	public <T> T getRemoteProxyObj(Class<?> serviceInterface) {
+
+		logger.debug("getRemoteProxyObj serviceInterface:{}",serviceInterface);
 
 		if (this.service.getServers(serviceInterface.getName()) != null) {
 
@@ -267,10 +317,20 @@ public abstract class SimpleBasic implements Basic {
 	 * @return 返回服务实例
 	 */
 	public <T> T getRemoteProxyObj(Class<?> serviceInterface, Channel channel) {
+
+		logger.debug("getRemoteProxyObj serviceInterface:{},channel:{}",serviceInterface,channel);
+
 		return this.remote.getRemoteProxyObj(serviceInterface,channel);
 	}
 
+	/**
+	 * 阻塞到准备好
+	 * @return
+     */
 	public boolean checkReady() {
+
+		logger.debug("checkReady");
+
 		setIsReady(false);
 		try {
 			while (getChannel() == null || !getChannel().isOpen()) {

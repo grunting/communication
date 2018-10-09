@@ -6,11 +6,15 @@ import cn.gp.model.Friend;
 import cn.gp.server.RegisterServer;
 import cn.gp.client.Report;
 import cn.gp.util.IndexTest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 实现上报功能
  */
 public class ReportImpl implements Report {
+
+	private static final Logger logger = LoggerFactory.getLogger(ReportImpl.class);
 
 	private Basic basic;
 
@@ -34,6 +38,8 @@ public class ReportImpl implements Report {
 			if (GroupImpl.passageWays.containsKey(friend.getName())) {
 				GroupImpl.passageWays.remove(friend.getName());
 			}
+			friend.setDie();
+			logger.info("friend lost,friend:{}",friend);
 		}
 	}
 
@@ -53,7 +59,7 @@ public class ReportImpl implements Report {
 		index.setIndex("names",name,friend);
 		index.setIndex("channelid",channelId,friend);
 
-		System.out.println(index.getAllNode());
+		logger.info("friend find,friend:{}",friend);
 	}
 
 	/**
@@ -66,7 +72,11 @@ public class ReportImpl implements Report {
 		// 目前签名中只发布自身名字的签名(通道是加密的)
 		byte[] crypto = RSA.encrypt(basic.getName().getBytes(),basic.getKeyPair().getPrivate());
 
-		return registerServer.addClient(basic.getName(),crypto);
+		boolean b = registerServer.addClient(basic.getName(),crypto);
+
+		logger.info("friend report,result:{}",b);
+
+		return b;
 	}
 
 	/**

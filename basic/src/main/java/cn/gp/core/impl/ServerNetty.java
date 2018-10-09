@@ -20,6 +20,8 @@ import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.traffic.GlobalTrafficShapingHandler;
 import io.netty.util.concurrent.DefaultEventExecutorGroup;
 import io.netty.util.concurrent.EventExecutorGroup;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -31,6 +33,8 @@ import java.security.KeyManagementException;
  * 服务端
  */
 public class ServerNetty extends SimpleBasic {
+
+	private static final Logger logger = LoggerFactory.getLogger(ServerNetty.class);
 
 	private GlobalTrafficShapingHandler globalTrafficShapingHandler;
 
@@ -45,6 +49,9 @@ public class ServerNetty extends SimpleBasic {
 	@Override
 	public void setConfigPath(String configPath, String defaultConfigKey) {
 		super.setConfigPath(configPath, defaultConfigKey);
+
+		logger.debug("setConfigPath configPath:{},defaultConfigKey:{}",configPath,defaultConfigKey);
+
 		jksTool = JksTool.getInstance(
 				configure.getConfigString(Constant.SERVER_JKS_PATH),
 				configure.getConfigString(Constant.SERVER_JKS_KEYPASS),
@@ -55,6 +62,9 @@ public class ServerNetty extends SimpleBasic {
 	@Override
 	public boolean start() {
 
+		logger.debug("start");
+
+		// 谁能教教我这里咋写……
 		final ServerNetty server = this;
 
 		// 根据配置实例化限速相关
@@ -75,20 +85,23 @@ public class ServerNetty extends SimpleBasic {
 
 					// 判断是否到了就义的时刻
 					if (!getIsAlive()) {
+						logger.debug("server lost timeToDie");
 						break;
 					}
 
-
 					// 判断是否达到就义的次数
 					if (retry == 0) {
+						logger.debug("server lost retryExeceed,retryUpperLimit:{}",configure.getConfigInteger(Constant.SERVER_RESTART_RETRY));
 						break;
 					}
 
 					if (retry != configure.getConfigInteger(Constant.SERVER_RESTART_RETRY)) {
 						count ++;
-						System.out.println("服务器启动失败,进行第" + count + "次重试");
+						logger.debug("server lost retry:{},retryUpperLimit:{}",count,configure.getConfigInteger(Constant.SERVER_RESTART_RETRY));
 					}
 					retry --;
+
+					logger.info("start server");
 
 					// 真实逻辑
 					EventLoopGroup bossGroup = new NioEventLoopGroup(2);// boss线程池
@@ -122,19 +135,26 @@ public class ServerNetty extends SimpleBasic {
 								// 是否启用心跳保活机制。在双方TCP套接字建立连接后（即都进入ESTABLISHED状态）并且在两个小时左右上层没有任何数据传输的情况下，这套机制才会被激活。
 								.childOption(ChannelOption.SO_KEEPALIVE, true);
 
-						ChannelFuture f = b.bind(configure.getConfigInteger(Constant.SERVER_PORT)).sync();
-						setChannel(f.channel());
 
-						checkSuccess.set(true);
+						logger.info("server port is {}",configure.getConfigInteger(Constant.SERVER_PORT));
+						ChannelFuture f = b.bind(configure.getConfigInteger(Constant.SERVER_PORT)).sync();
+
+						setChannel(f.channel());
+						setCheckSuccess(true);
+						logger.info("server is started");
 
 						f.channel().closeFuture().sync();
+						logger.debug("channel closed");
 
 					} catch (Exception e) {
+
+						logger.error("server not started",e);
 						e.printStackTrace();
 					} finally {
 						workerGroup.shutdownGracefully();
 						bossGroup.shutdownGracefully();
 					}
+
 					try {
 						Thread.sleep(configure.getConfigInteger(Constant.SERVER_RESTART_INTERVAL));
 					} catch (Exception e) {
@@ -158,6 +178,11 @@ public class ServerNetty extends SimpleBasic {
 		return checkReady();
 	}
 
+	/**
+	 * 发送信息到指定通道中
+	 * @param channel 通道
+	 * @param request 信息
+     */
 	public void sendMessage(Channel channel, Request request) {
 		getService().sendMessageServer(channel, request);
 	}
@@ -165,10 +190,14 @@ public class ServerNetty extends SimpleBasic {
 	/**
 	 * 给出加密处理
 	 * @param needsClientAuth 是否需要验证客户端
+	 * @param configure 配置
+	 * @param jksTool 秘钥配置
 	 * @return 返回加密处理实例
-	 * @throws Exception 运行出错
-	 */
+     * @throws Exception
+     */
 	private static SslHandler createSslHandler(boolean needsClientAuth, Configure configure, JksTool jksTool) throws Exception {
+
+		logger.debug("createSslHandler configure:{},jksTool:{}",configure,jksTool);
 
 		KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
 		kmf.init(

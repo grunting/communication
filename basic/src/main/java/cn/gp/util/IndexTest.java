@@ -81,17 +81,15 @@ public class IndexTest<K extends IsAlive> {
 	public Set<K> getAllNode() {
 
 		Set<K> result = new HashSet<K>();
-		if (index != null) {
-			for (String key : index.keySet()) {
-				ConcurrentMap<String,ConcurrentSet<K>> values = index.get(key);
-				for (String value : values.keySet()) {
-					ConcurrentSet<K> con = values.get(value);
-					for (K k : con) {
-						if (k.isAlive()) {
-							result.add(k);
-						} else {
-							con.remove(k);
-						}
+		for (String key : index.keySet()) {
+			ConcurrentMap<String,ConcurrentSet<K>> values = index.get(key);
+			for (String value : values.keySet()) {
+				ConcurrentSet<K> con = values.get(value);
+				for (K k : con) {
+					if (k.isAlive()) {
+						result.add(k);
+					} else {
+						con.remove(k);
 					}
 				}
 			}

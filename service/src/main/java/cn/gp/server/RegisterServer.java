@@ -1,6 +1,9 @@
 package cn.gp.server;
 
+import cn.gp.model.ClientBean;
 import io.netty.channel.ChannelHandlerContext;
+
+import java.util.Set;
 
 /**
  * 注册本客户端服务端协议
@@ -20,4 +23,10 @@ public interface RegisterServer {
      * @param ctx 通道上下文
      */
     void removeChannel(ChannelHandlerContext ctx);
+
+    /**
+     * 获取所有客户端
+     * @return 客户端集合
+     */
+    Set<ClientBean> getClientBean();
 }
