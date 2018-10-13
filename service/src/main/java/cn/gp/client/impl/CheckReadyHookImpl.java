@@ -1,9 +1,9 @@
 package cn.gp.client.impl;
 
+import cn.gp.client.Group;
 import cn.gp.client.Report;
-import cn.gp.core.Basic;
+import cn.gp.core.impl.SimpleBasic;
 import cn.gp.server.RegisterServer;
-import cn.gp.server.impl.RegisterServerImpl;
 import cn.gp.service.CheckReadyHook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,29 +16,39 @@ import java.util.List;
  */
 public class CheckReadyHookImpl implements CheckReadyHook {
 
-	private static final Logger logger = LoggerFactory.getLogger(CheckReadyHookImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(CheckReadyHookImpl.class);
 
-	private Basic basic;
+    private SimpleBasic simpleBasic;
 
-	public CheckReadyHookImpl(Basic basic) {
-		this.basic = basic;
-	}
+    public CheckReadyHookImpl(SimpleBasic simpleBasic) {
+        this.simpleBasic = simpleBasic;
+    }
 
-	public boolean checkReadyHook() throws Exception {
+    public boolean checkReadyHook() {
 
-		logger.debug("checkReadyHook");
+        logger.debug("checkReadyHook");
 
-		Report reportImpl = basic.getRemoteProxyObj(Report.class);
-		return reportImpl.send();
-	}
+        Report reportImpl = simpleBasic.getRemoteProxyObj(Report.class);
+        return reportImpl.send();
+    }
 
-	public List<Class> getCheckReadyHookList() {
+    /**
+     * 丢失服务器的后续处理
+     */
+    public void lostServer() {
+        Report report = simpleBasic.getRemoteProxyObj(Report.class);
+        report.lostClientAll();
+        Group group = simpleBasic.getRemoteProxyObj(Group.class);
+        group.lostClientAll();
+    }
 
-		logger.debug("getCheckReadyHookList");
+    public List<Class> getCheckReadyHookList() {
 
-		List<Class> list = new ArrayList<Class>();
-		list.add(basic.getServiceInterface(Report.class.getName()));
-		list.add(RegisterServer.class);
-		return list;
-	}
+        logger.debug("getCheckReadyHookList");
+
+        List<Class> list = new ArrayList<Class>();
+        list.add(simpleBasic.getServiceInterface(Report.class.getName()));
+        list.add(RegisterServer.class);
+        return list;
+    }
 }

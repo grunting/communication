@@ -1,5 +1,9 @@
 package cn.gp.client;
 
+import cn.gp.model.Friend;
+
+import java.util.Set;
+
 /**
  * 处理客户端基本信息协议
  */
@@ -21,11 +25,16 @@ public interface Report {
     /**
      * 发送本客户端信息给服务器
      */
-    boolean send() throws Exception;
+    boolean send();
 
-	/**
-	 * 统计目前总客户端数目
-     * @return 数量
+    /**
+     * 获取当前存活终端
+     * @return 存活终端
      */
-    int count();
+    Set<Friend> getAllFriends();
+
+    /**
+     * 去除所有客户端
+     */
+    void lostClientAll();
 }

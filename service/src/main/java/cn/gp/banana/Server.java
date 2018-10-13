@@ -1,32 +1,34 @@
 package cn.gp.banana;
 
-import cn.gp.core.impl.ServerNetty;
+import cn.gp.core.impl.ServerBasic;
 import cn.gp.server.GroupServer;
 import cn.gp.server.RegisterServer;
 import cn.gp.server.impl.ChannelHookImpl;
 import cn.gp.server.impl.GroupServerImpl;
 import cn.gp.server.impl.RegisterServerImpl;
-import cn.gp.test.PrintStatus;
-import cn.gp.test.PrintTraffic;
+import cn.gp.service.ChannelHook;
 
 /**
- * 服务器测试类
+ * 服务器
  */
 public class Server {
-	public static void main(String[] args) {
-		ServerNetty server = new ServerNetty();
-		server.setChannelHook(new ChannelHookImpl(server));
 
-		server.setConfigPath("basic.properties","server.conf");
-		server.init();
+    public static void main(String[] args) throws Exception {
 
-		server.putServiceInterface(GroupServer.class.getName(),GroupServerImpl.class);
-		server.putServiceInterface(RegisterServer.class.getName(),RegisterServerImpl.class);
+        Thread thread = new Thread() {
+            @Override
+            public void run() {
+                super.run();
+                ServerBasic serverBasic = new ServerBasic();
+                serverBasic.putServiceInterface(RegisterServer.class.getName(), RegisterServerImpl.class);
+                serverBasic.putServiceInterface(GroupServer.class.getName(), GroupServerImpl.class);
+                ChannelHook channelHook = new ChannelHookImpl(serverBasic);
+                serverBasic.setChannelHook(channelHook);
 
-		server.start();
+                serverBasic.start();
+            }
+        };
+        thread.start();
 
-		System.out.println("start and ready");
-//		PrintTraffic.printTraffic(server.getGlobalTrafficShapingHandler());
-//		PrintStatus.printStatus(server);
-	}
+    }
 }

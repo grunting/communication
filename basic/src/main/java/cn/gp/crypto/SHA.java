@@ -10,19 +10,19 @@ import java.security.NoSuchAlgorithmException;
  */
 public class SHA {
 
-	/**
-	 * SHA签名
-	 * @param src 签名内容
-	 * @return 返回签名,40个字符
-	 */
-	public static String encodeSHA(byte[] src) {
-		try {
-			MessageDigest md = MessageDigest.getInstance("SHA");
-			md.update(src);
-			return Hex.encodeHexString(md.digest());
-		} catch (NoSuchAlgorithmException e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
+    /**
+     * SHA签名
+     * @param src 签名内容
+     * @return 返回签名,40个字符
+     */
+    public static String encodeSHA(byte[] src) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA");
+            md.update(src);
+            return Hex.encodeHexString(md.digest());
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }

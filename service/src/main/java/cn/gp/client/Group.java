@@ -30,7 +30,7 @@ public interface Group {
      */
     boolean receiveMessage(String name,byte[] crypto) throws Exception;
 
-	/**
+    /**
      * 发送信息
      * @param name 对方的名字
      * @param message 信息
@@ -39,5 +39,8 @@ public interface Group {
      */
     boolean sendMessage(String name,String message) throws Exception;
 
-    String getMessage(String nameAndTime) throws Exception;
+    /**
+     * 清除所有通道
+     */
+    void lostClientAll();
 }

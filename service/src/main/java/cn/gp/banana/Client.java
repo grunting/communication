@@ -5,90 +5,71 @@ import cn.gp.client.Report;
 import cn.gp.client.impl.CheckReadyHookImpl;
 import cn.gp.client.impl.GroupImpl;
 import cn.gp.client.impl.ReportImpl;
-import cn.gp.core.impl.ClientNetty;
+import cn.gp.core.impl.ClientBasic;
 import cn.gp.service.CheckReadyHook;
-import cn.gp.test.ScannerHandler;
-
-import java.util.Random;
 
 /**
- * 客户端测试类
+ * 客户端
  */
 public class Client {
 
-	private static volatile ClientNetty clientNetty;
+    private static volatile Client client;
 
-	private Client() {
-		super();
-	}
+    private volatile ClientBasic clientBasic;
 
-	public static ClientNetty getInstance() {
-		if (clientNetty == null) {
-			synchronized (Client.class) {
-				if (clientNetty == null) {
-					ClientNetty cli = new ClientNetty();
-					cli.setConfigPath("basic.properties","client.conf");
-					cli.init();
-					CheckReadyHook checkReadyHook = new CheckReadyHookImpl(cli);
-					cli.setCheckReadyHook(checkReadyHook);
+    private Client() {
+        super();
+    }
 
-					cli.putServiceInterface(Report.class.getName(),ReportImpl.class);
-					cli.putServiceInterface(Group.class.getName(),GroupImpl.class);
+    public static Client getInstance() {
+        if (client == null) {
+            synchronized (Client.class) {
+                if (client == null) {
 
-					cli.start();
-					clientNetty = cli;
-				}
-			}
-		}
-		return clientNetty;
-	}
+                    Client client1 = new Client();
+                    client1.clientBasic = new ClientBasic();
+                    client1.clientBasic.putServiceInterface(Report.class.getName(), ReportImpl.class);
+                    client1.clientBasic.start();
 
-	/**
-	 * 当期服务器的人数
-	 * @return 数量
-	 */
-	public static int count() {
-		Report report = getInstance().getRemoteProxyObj(Report.class);
-		return report.count();
-	}
-
-	/**
-	 * 发送信息
-	 * @param name
-	 * @param message
-	 * @return
-	 * @throws Exception
-	 */
-	public static String sendMessage(String name,String message) throws Exception {
-
-		Group group = getInstance().getRemoteProxyObj(Group.class);
-
-		Random random = new Random();
-
-		String don = Float.toString(random.nextFloat());
-
-		if (group.sendMessage(name,don + "~~~" + message)) {
-			String result;
-			int i = 5;
-			while ((result = group.getMessage(name + "-" + don)) == null) {
-				if (i -- < 1) {
-					break;
-				}
-				Thread.sleep(10000);
-			}
-			return result;
-		}
-
-		return "对方拒绝了通信,或服务器消失了";
-	}
-
-	public static void main(String[] args) throws Exception {
+                    client = client1;
+                }
+            }
+        }
+        return client;
+    }
 
 
+    public static void main(String[] args) throws Exception {
 
-//		System.out.println(Client.sendMessage("client2","测试"));
+        Thread thread1 = new Thread() {
+            @Override
+            public void run() {
+                super.run();
+                ClientBasic clientBasic = new ClientBasic();
+                clientBasic.putServiceInterface(Report.class.getName(), ReportImpl.class);
+                clientBasic.putServiceInterface(Group.class.getName(), GroupImpl.class);
 
-		ScannerHandler sc = new ScannerHandler(Client.getInstance());
-		sc.init();
-	}
+                CheckReadyHook checkReadyHook = new CheckReadyHookImpl(clientBasic);
+
+                clientBasic.setCheckReadyHook(checkReadyHook);
+                clientBasic.start();
+
+                try {
+                    while(true) {
+                        Thread.sleep(1000);
+                        Report report = clientBasic.getRemoteProxyObj(Report.class);
+                        System.out.println(clientBasic.getSimpleChannel().isReady() +" friends:" + report.getAllFriends().toString());
+                        if (clientBasic.getSimpleChannel().isLink()) {
+//                            Group group = clientBasic.getRemoteProxyObj(Group.class);
+//                            System.out.println("send message to client1 ,status:" + group.sendMessage("client1","my name is client2"));
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        thread1.start();
+    }
+
 }
